@@ -1,0 +1,53 @@
+id,utterance,count,ratio
+if1_hh,might + literal,3,0.033707865168539325
+if1_hh,conditional,14,0.15730337078651685
+if1_hh,literal,2,0.02247191011235955
+if1_hh,conjunction,70,0.7865168539325843
+if1_lh,might + literal,7,0.07865168539325842
+if1_lh,conditional,10,0.11235955056179775
+if1_lh,literal,5,0.056179775280898875
+if1_lh,conjunction,67,0.7528089887640449
+if1_u-Lh,might + literal,9,0.10112359550561797
+if1_u-Lh,conditional,28,0.3146067415730337
+if1_u-Lh,literal,3,0.033707865168539325
+if1_u-Lh,conjunction,49,0.550561797752809
+if1_uh,might + literal,11,0.12359550561797752
+if1_uh,conditional,33,0.3707865168539326
+if1_uh,literal,2,0.02247191011235955
+if1_uh,conjunction,43,0.48314606741573035
+if2_hl,might + literal,7,0.07865168539325842
+if2_hl,conditional,12,0.1348314606741573
+if2_hl,literal,7,0.07865168539325842
+if2_hl,conjunction,63,0.7078651685393258
+if2_ll,might + literal,13,0.14606741573033707
+if2_ll,conditional,23,0.2584269662921348
+if2_ll,literal,0,0
+if2_ll,conjunction,53,0.5955056179775281
+if2_u-Ll,might + literal,16,0.1797752808988764
+if2_u-Ll,conditional,15,0.16853932584269662
+if2_u-Ll,literal,7,0.07865168539325842
+if2_u-Ll,conjunction,51,0.5730337078651685
+if2_ul,might + literal,13,0.14772727272727273
+if2_ul,conditional,16,0.18181818181818182
+if2_ul,literal,6,0.06818181818181818
+if2_ul,conjunction,53,0.6022727272727273
+independent_hh,might + literal,2,0.022727272727272728
+independent_hh,conditional,1,0.011363636363636364
+independent_hh,literal,4,0.045454545454545456
+independent_hh,conjunction,81,0.9204545454545454
+independent_hl,might + literal,12,0.1348314606741573
+independent_hl,conditional,0,0
+independent_hl,literal,13,0.14606741573033707
+independent_hl,conjunction,64,0.7191011235955056
+independent_ll,might + literal,17,0.19318181818181818
+independent_ll,conditional,2,0.022727272727272728
+independent_ll,literal,7,0.07954545454545454
+independent_ll,conjunction,62,0.7045454545454546
+independent_uh,might + literal,15,0.17045454545454547
+independent_uh,conditional,1,0.011363636363636364
+independent_uh,literal,10,0.11363636363636365
+independent_uh,conjunction,62,0.7045454545454546
+independent_ul,might + literal,37,0.4157303370786517
+independent_ul,conditional,2,0.02247191011235955
+independent_ul,literal,4,0.0449438202247191
+independent_ul,conjunction,46,0.5168539325842696

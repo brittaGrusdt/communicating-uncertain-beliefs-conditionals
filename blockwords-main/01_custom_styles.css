@@ -1,0 +1,560 @@
+/* In this file you can overwrite/extend the given magpie-styles or declare your own ones */
+
+/* Example of extending a given magpie-style */
+
+/* Display all titles in red */
+/*.magpie-view-title {
+    color: red;
+}*/
+
+.magpie-view {
+    box-sizing: border-box;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 50px 0;
+}
+
+/* Example of declaring your own style */
+.custom-border {
+  border: 1px solid powderblue;
+}
+
+/* the default */
+.magpie-view-answer-container {
+  text-align: center;
+  margin: 45px auto;
+}
+
+/* for animations in training trials */
+.magpie-view-stimulus-grid {
+  display: grid;
+  grid-template-areas:
+    "animationTitle animationTitle stim_chart"
+    "animation animation stim_chart";
+  grid-template-columns: 80% 20%;
+  grid-template-rows: auto 400px;
+  padding: 20px;
+}
+animationTitle {
+  grid-column: 1/3;
+  grid-row: 1/2;
+}
+animation {
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+  align-self: center;  /* according to column (top (start) down (end) center stretch)*/
+}
+
+/* used for space between buttons in training examples */
+.divider {
+    width:2px;
+    height:auto;
+    display:inline-block;
+}
+
+/* for training trials we need an additional button (to run animation) */
+.magpie-buttons-grid {
+  display: grid;
+  grid-template-areas:
+    "run next";
+  grid-template-columns: 50% 50%;
+  grid-template-rows: auto;
+  padding: 5px;
+}
+
+run {
+  grid-column: 1/2;
+  grid-row: 1 / 2;
+}
+
+next {
+  grid-column: 2/3;
+  grid-row: 1 / 2;
+}
+
+.grid-question {
+  position: relative;
+  top: 20px;
+}
+/* grid box for answer container */
+.response {
+  display: flex;
+  flex-flow: row;
+  padding: 10px;
+  margin-top: -50px;
+}
+.qa-block {
+  margin-bottom: 20px;
+  margin-left: 100px;
+}
+.magpie-multi-slider-grid {
+  align-items: left;
+  display: flex;
+  flex-flow: column;
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+header {
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+}
+picture {
+  grid-column: 1 / 3;
+  grid-row: 1 / 2;
+}
+
+/* assign the stimulus questions + slider to corresponding grid space */
+.magpie-grid-slider {
+  margin: 0px 0px 30px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.optionWide {
+  width: 120px;
+}
+
+input[type="range"].moved::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: green;
+}
+
+input[type=range].moved::-moz-range-thumb {
+  background-color: green;
+}
+
+input[type="range"].correct-slider::-webkit-slider-runnable-track {
+  background: #51DE19;
+}
+
+/* needed for firefox */
+input[type=range].correct-slider::-moz-range-track {
+  background-color: #51DE19;
+}
+
+.thick {
+  font-weight: bold;
+}
+/* change margin of next button so that all fits onto one screen */
+/* gray + hovering disabled as long as not all responses are given */
+.grid-button {
+  /* margin: 5px auto 20px auto; */
+  background-color: #a9a9a9;
+  pointer-events: none;
+
+}
+/*background color shall change immediately, not after clicking somewhere else*/
+.grid-button:focus {
+  background-color: #a9a9a9;
+}
+
+.buttonContainer {
+  /* margin: 0px 10px 0px 5px; */
+  display: flex; /* or inline-flex */
+  justify-content: center;
+  align-items: stretch;
+  left:45%;
+}
+
+.styled-button {
+  border: 2px solid black;
+  border-radius: 2px;
+  display: block;
+  font-family: "Lato", "Noto Sans", sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  margin: 10px;
+  outline: none;
+  padding: 5px 10px;
+}
+
+
+.unselected {
+  text-align: center;
+  align-self: center;
+  background-color: #FFFFFF;
+}
+
+.selected {
+  text-algin: center;
+  align-self: center;
+  /* background-color: #28B463 ; */
+  border: 8px solid #2C6131 ;
+}
+
+.correct {
+  /* border: 8px solid #28B463; */
+  border: 8px solid #51DE19;
+  /* background-color: #28B463; */
+}
+
+.incorrect {
+  border: 8px solid #ff0000;
+  /* background-color: #ff0000; */
+}
+
+.magpie-view-text {
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 17px;
+  line-height: 27px;
+  font-family: "Lato", "Noto Sans", sans-serif;
+  margin: 0 auto;
+  max-width: 700px;
+}
+
+.stimulus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px auto 0px auto;
+}
+
+.stimulus_grid {
+  display: flex;
+  grid-template-areas:
+    "stim_pic stim_chart";
+  grid-template-columns: 75% 25%;
+  /* margin-left: 100px; */
+  /* padding: 20px; */
+  /* width: 80%; */
+  /* height: 80%; */
+  align-items: left;
+  align-self: center;
+}
+
+#qud {
+  max-width: 85%;
+}
+
+.stim_chart {
+  align-content: left;
+}
+
+.stim_pic{
+  max-width: 60%;
+  height: auto;
+  /* align-items: center; */
+}
+
+.picture{
+  max-width: 75%;
+  height: 65%;
+  align-items: center;
+}
+
+.butt{
+  border: none;
+  border-radius: 2px;
+  color: white;
+  display: block;
+  font-family: "Lato", "Noto Sans", sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  margin: 40px auto 20px auto;
+  outline: none;
+  padding: 5px 10px;
+}
+/* change container of progress_bar, so that all fits on one screen */
+.progress-bar-container {
+  margin: 5px;
+  position: absolute;
+  right: 10px;
+}
+
+.img{
+  /* max-width: 50%; */
+  max-height: 80%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.img_wide{
+  height: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.instruction_img{
+  width: 75%;
+  height: 100%;
+}
+.instruction_img_small{
+  width: 75%;
+  height: 60%;
+}
+
+.div-border {
+  display: inline-block;
+}
+
+/* ab hier code für fridge-view */
+/* code for fridge box */
+.fix-box {
+  width: 90%;
+  display: block;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  font-size: 30px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+.fridge {
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  font-size: 30px;
+  /* align-content: space-around; */
+}
+
+.word {
+  background-color: #F8EFE5;
+  border: none;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 8px 8px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+   border: 2px solid #4CAF50;
+
+
+/* ab hier magpie-view-button optik */
+   color: black;
+   display: block;
+   font-family: "Lato", "Noto Sans", sans-serif;
+   line-height: 20px;
+   font-weight: 700;
+   letter-spacing: 0.9px;
+   padding: 10px 20px;
+   text-transform: uppercase;
+}
+
+
+.blue{
+  color: black;
+  border: 3px solid #4059AD;
+  border-radius: 15px;
+}
+
+.blue:hover {
+  background-color: #4059AD;
+  color: white;
+  border-radius: 15px;
+}
+
+.red{
+  color: black;
+  border: 3px solid #C75C5C;
+  /*#911f1f; */
+    border-radius: 15px;
+}
+
+.red:hover {
+  background-color: #C75C5C;
+  color: white;
+    border-radius: 15px;
+}
+
+.orange{
+  color: black;
+  border: 3px solid #F4B942;
+    border-radius: 15px;
+}
+
+.orange:hover {
+  background-color: #F4B942;
+  color: white;
+    border-radius: 15px;
+}
+
+.green{
+  color: black;
+  border: 3px solid #97D8C4;
+    border-radius: 15px;
+}
+
+.green:hover {
+  background-color: #97D8C4;
+  color: white;
+    border-radius: 15px;
+}
+
+.word-button{
+  color: black;
+  /* border: 3px solid #6B9AC4; */
+  border: 3px solid #FF9B52;
+  border-radius: 15px;
+}
+
+.word-button:hover {
+  background-color: #FF9B52;
+  color: white;
+  border-radius: 15px;
+}
+
+.black {
+  color: black;
+  border: 3px solid black;
+  border-radius: 15px;
+}
+
+.black:hover {
+  background-color: black;
+  color: white;
+    border-radius: 15px;
+}
+
+.train-not-clickable {
+  pointer-events: none;
+}
+
+.not-clickable {
+  background-color: #a9a9a9;
+  border: 3px solid #a9a9a9;
+  pointer-events: none;
+}
+
+.made-sentence{
+  width:800px;
+  display:flex;
+  padding: 50px;
+}
+
+.sentence{
+  position: absolute;
+  left: 10%;
+  font-family: "Lato", "Noto Sans", sans-serif;
+}
+
+.selected-words{
+  border: 3px solid #4CAF50;
+    border-radius: 15px;
+    text-algin: center;
+    align-self: center;
+    padding: 16px 32px;
+}
+
+ #buttonDelete{
+  background-color: #D74C30;
+}
+
+.fridge-buttons {
+  margin:5px;
+  position: absolute;
+  right: 10%;
+}
+
+#buttonNext {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+#customWords {
+  margin-right: 150px;
+}
+
+.buttons{
+  display:flex;
+}
+
+#custom-text{
+  width: 350px;
+}
+
+.fridge-grid {
+  display: grid;
+  grid-template-areas:
+    "fridge fridge"
+    "selected1 selected";
+  grid-template-rows: 50% 50%;
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+.hide { display: none }
+
+.comment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px auto 0px auto;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+#smallMarginNextButton {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.smallMarginDiv {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+
+
+.slider-width
+{
+    width: 200px;
+}
+
+#chartdiv {
+  /* width: auto;
+  height: auto; */
+  width: 560px;
+  margin-top: 100px;
+}
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+ /* .trainResult .ZebraDialog_Title {
+    background: #330066;
+} */
+.trainResult .ZebraDialog_Body {
+    font-size: 21px;
+}

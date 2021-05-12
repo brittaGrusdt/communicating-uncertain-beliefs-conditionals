@@ -1,0 +1,128 @@
+// Parameters
+globalStore.thresholds = {theta: data["theta"][0], theta_likely : 0.25}
+
+// states + utterances
+globalStore.cns = data["cns"]
+globalStore.dep_cns = _.without(data["cns"], "A || C");
+globalStore.utterances = data["utterances"]
+
+var tables_list = data["tables"]
+globalStore.bns = map(function(obj){
+  var p = Categorical({"vs": obj["vs"], "ps": obj["ps"]})
+  return {
+    bn_id: obj.bn_id, table_id: obj.table_id, Table: p, cn: obj.cn, ll: obj.ll
+  }
+}, tables_list)
+
+// model parameters
+globalStore.alpha = data["alpha"][0]
+globalStore.cost_conditional = data["cost_conditional"][0]
+
+var UTT = data["utt"][0]
+
+// output parameters
+var LEVEL_MAX = data["level_max"][0]
+var verbose = data["verbose"][0]
+
+if(verbose){
+  display('level_max: ' + LEVEL_MAX);
+  display('# utterances:' + (globalStore.utterances).length)
+  display("UTT (for listener/condition speaker): " + UTT)
+  display("cost conditional:" + globalStore.cost_conditional)
+  display("# cns:" + (globalStore.cns).length)
+  display("alpha:" + globalStore.alpha)
+  display("# tables:" + tables_list.length)
+}
+
+// Run from R ----------------------------------------------------------------
+var run = function(level){
+  if(verbose){ display("run " + level + " ...") }
+  return level == "prior" ? state_prior() :
+         level == "LL" ? literal_listener(UTT) : listener(UTT)
+}
+
+globalStore.state_prior = run("prior")
+var all_bns = globalStore.state_prior.support()
+if(verbose){display('# states: ' + all_bns.length)}
+// display('single bn: ')
+// display(all_bns[0])
+
+var wrap_ll = function(u){
+  display(u)
+  literal_listener(u)
+}
+
+var run_speaker = function(bns){
+  var distrs = map(function(bn){
+   speaker(bn, "", false)
+  }, bns)
+  var distributions = {"speaker_": distrs, "bns": bns}
+  distributions
+}
+
+// RUN MODEL
+if(LEVEL_MAX == "speaker"){
+  // run speaker with only bayes nets for which certain conditions may hold
+  // depending on value of UTT; use (UTT="" for no condition)
+  var prior_conditioned = UTT != "" ? priorConditionedForSpeaker(UTT) :
+    globalStore.state_prior;
+  var n_samples = data["n_samples"][0]
+   // define set of input states for speaker
+   // 1. draw n_samples from prior or
+   // 2. compute predictions just for given set of bn_ids or
+   // 3. take all bns from support of prior
+  var bns = n_samples != 0 ? repeat(n_samples, function(){sample(prior_conditioned)}) :
+    (data["bn_ids"] ?
+      filter(function(bn){return data["bn_ids"].includes(bn.bn_id)}, all_bns) : all_bns);
+
+  if(verbose){
+    display('nb bns considered for speaker (might contain identical tables with different causal nets):' + bns.length)
+  }
+  var distributions = run_speaker(bns)
+  distributions
+
+} else if(LEVEL_MAX == "ll_all_utts"){
+  var distributions = {"ll": map(wrap_ll, globalStore.utterances)}
+  distributions
+
+} else if(LEVEL_MAX == "prior_conditioned"){
+  var distributions = map(function(cn){
+                        display(cn)
+                        Infer({model:function(){
+                          var s = sample(globalStore.state_prior)
+                          condition(s["bn"]["cn"] == cn)
+                          return s
+                        }})
+                      }, globalStore.cns)
+
+  var obj = {distributions}
+  obj
+
+} else if (LEVEL_MAX == "priorN"){
+  var n_samples = data["n_samples"][0]
+  display('sample ' + n_samples + ' states from prior...')
+  var bns = repeat(n_samples, function(){
+    var s = sample(globalStore.state_prior)
+    return s
+  })
+  var distributions = {"bns": bns}
+  distributions
+
+} else if(LEVEL_MAX == "log_likelihood") {
+  display("compute log-likelihoods ...")
+  var likelihoods = [];
+  map(function(bn){
+    var ll = log_likelihood(bn)
+    // display(bn.id + ' '  + bn.table + ' ' + bn.cn + '' + ll)
+    likelihoods.push({"cn": bn.cn, "logL": ll, "id": bn.bn_id});
+  }, all_bns)
+  likelihoods
+} else{
+  var distributions = LEVEL_MAX == "prior" ? {"prior": globalStore.state_prior} :
+                      LEVEL_MAX == "LL" ? {"prior": globalStore.state_prior, "LL": run("LL")} :
+                      LEVEL_MAX == "PL" ? {"prior": globalStore.state_prior, "LL": run("LL"),
+                                           "PL": run("PL")} :
+                      error("unknown output level: " + LEVEL_MAX)
+  // object to return to R
+  distributions
+}

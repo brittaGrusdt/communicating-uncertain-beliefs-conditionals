@@ -1,0 +1,261 @@
+id,N,utterance,count,ratio
+if1_hh,100,blue does not fall,1,0.01
+if1_hh,100,blue falls,2,0.02
+if1_hh,100,blue falls but green does not fall,2,0.02
+if1_hh,100,blue might fall,1,0.01
+if1_hh,100,blue might not fall,0,0
+if1_hh,100,both blocks fall,73,0.73
+if1_hh,100,green does not fall,0,0
+if1_hh,100,green falls,1,0.01
+if1_hh,100,green falls but blue does not fall,2,0.02
+if1_hh,100,green might fall,1,0.01
+if1_hh,100,green might not fall,1,0.01
+if1_hh,100,if blue does not fall green does not fall,1,0.01
+if1_hh,100,if blue does not fall green falls,0,0
+if1_hh,100,if blue falls green does not fall,0,0
+if1_hh,100,if blue falls green falls,14,0.14
+if1_hh,100,if green does not fall blue does not fall,0,0
+if1_hh,100,if green does not fall blue falls,0,0
+if1_hh,100,if green falls blue does not fall,0,0
+if1_hh,100,if green falls blue falls,0,0
+if1_hh,100,neither block falls,1,0.01
+if1_lh,100,blue does not fall,1,0.01
+if1_lh,100,blue falls,1,0.01
+if1_lh,100,blue falls but green does not fall,5,0.05
+if1_lh,100,blue might fall,2,0.02
+if1_lh,100,blue might not fall,0,0
+if1_lh,100,both blocks fall,12,0.12
+if1_lh,100,green does not fall,0,0
+if1_lh,100,green falls,3,0.03
+if1_lh,100,green falls but blue does not fall,16,0.16
+if1_lh,100,green might fall,5,0.05
+if1_lh,100,green might not fall,2,0.02
+if1_lh,100,if blue does not fall green does not fall,0,0
+if1_lh,100,if blue does not fall green falls,0,0
+if1_lh,100,if blue falls green does not fall,0,0
+if1_lh,100,if blue falls green falls,10,0.1
+if1_lh,100,if green does not fall blue does not fall,0,0
+if1_lh,100,if green does not fall blue falls,0,0
+if1_lh,100,if green falls blue does not fall,0,0
+if1_lh,100,if green falls blue falls,0,0
+if1_lh,100,neither block falls,43,0.43
+if1_u-Lh,100,blue does not fall,0,0
+if1_u-Lh,100,blue falls,0,0
+if1_u-Lh,100,blue falls but green does not fall,5,0.05
+if1_u-Lh,100,blue might fall,3,0.03
+if1_u-Lh,100,blue might not fall,1,0.01
+if1_u-Lh,100,both blocks fall,35,0.35
+if1_u-Lh,100,green does not fall,0,0
+if1_u-Lh,100,green falls,5,0.05
+if1_u-Lh,100,green falls but blue does not fall,3,0.03
+if1_u-Lh,100,green might fall,6,0.06
+if1_u-Lh,100,green might not fall,0,0
+if1_u-Lh,100,if blue does not fall green does not fall,0,0
+if1_u-Lh,100,if blue does not fall green falls,0,0
+if1_u-Lh,100,if blue falls green does not fall,0,0
+if1_u-Lh,100,if blue falls green falls,28,0.28
+if1_u-Lh,100,if green does not fall blue does not fall,0,0
+if1_u-Lh,100,if green does not fall blue falls,0,0
+if1_u-Lh,100,if green falls blue does not fall,0,0
+if1_u-Lh,100,if green falls blue falls,0,0
+if1_u-Lh,100,neither block falls,14,0.14
+if1_uh,100,blue does not fall,1,0.01
+if1_uh,100,blue falls,0,0
+if1_uh,100,blue falls but green does not fall,4,0.04
+if1_uh,100,blue might fall,7,0.07
+if1_uh,100,blue might not fall,1,0.01
+if1_uh,100,both blocks fall,40,0.4
+if1_uh,100,green does not fall,0,0
+if1_uh,100,green falls,2,0.02
+if1_uh,100,green falls but blue does not fall,2,0.02
+if1_uh,100,green might fall,3,0.03
+if1_uh,100,green might not fall,1,0.01
+if1_uh,100,if blue does not fall green does not fall,1,0.01
+if1_uh,100,if blue does not fall green falls,0,0
+if1_uh,100,if blue falls green does not fall,0,0
+if1_uh,100,if blue falls green falls,33,0.33
+if1_uh,100,if green does not fall blue does not fall,0,0
+if1_uh,100,if green does not fall blue falls,0,0
+if1_uh,100,if green falls blue does not fall,0,0
+if1_uh,100,if green falls blue falls,0,0
+if1_uh,100,neither block falls,5,0.05
+if2_hl,100,blue does not fall,0,0
+if2_hl,100,blue falls,6,0.06
+if2_hl,100,blue falls but green does not fall,27,0.27
+if2_hl,100,blue might fall,8,0.08
+if2_hl,100,blue might not fall,0,0
+if2_hl,100,both blocks fall,41,0.41
+if2_hl,100,green does not fall,2,0.02
+if2_hl,100,green falls,1,0.01
+if2_hl,100,green falls but blue does not fall,1,0.01
+if2_hl,100,green might fall,0,0
+if2_hl,100,green might not fall,0,0
+if2_hl,100,if blue does not fall green does not fall,1,0.01
+if2_hl,100,if blue does not fall green falls,0,0
+if2_hl,100,if blue falls green does not fall,0,0
+if2_hl,100,if blue falls green falls,12,0.12
+if2_hl,100,if green does not fall blue does not fall,0,0
+if2_hl,100,if green does not fall blue falls,0,0
+if2_hl,100,if green falls blue does not fall,0,0
+if2_hl,100,if green falls blue falls,0,0
+if2_hl,100,neither block falls,1,0.01
+if2_ll,100,blue does not fall,0,0
+if2_ll,100,blue falls,1,0.01
+if2_ll,100,blue falls but green does not fall,9,0.09
+if2_ll,100,blue might fall,4,0.04
+if2_ll,100,blue might not fall,4,0.04
+if2_ll,100,both blocks fall,18,0.18
+if2_ll,100,green does not fall,0,0
+if2_ll,100,green falls,0,0
+if2_ll,100,green falls but blue does not fall,0,0
+if2_ll,100,green might fall,5,0.05
+if2_ll,100,green might not fall,0,0
+if2_ll,100,if blue does not fall green does not fall,2,0.02
+if2_ll,100,if blue does not fall green falls,0,0
+if2_ll,100,if blue falls green does not fall,0,0
+if2_ll,100,if blue falls green falls,20,0.2
+if2_ll,100,if green does not fall blue does not fall,0,0
+if2_ll,100,if green does not fall blue falls,0,0
+if2_ll,100,if green falls blue does not fall,0,0
+if2_ll,100,if green falls blue falls,1,0.01
+if2_ll,100,neither block falls,36,0.36
+if2_u-Ll,100,blue does not fall,0,0
+if2_u-Ll,100,blue falls,8,0.08
+if2_u-Ll,100,blue falls but green does not fall,18,0.18
+if2_u-Ll,100,blue might fall,13,0.13
+if2_u-Ll,100,blue might not fall,2,0.02
+if2_u-Ll,100,both blocks fall,23,0.23
+if2_u-Ll,100,green does not fall,2,0.02
+if2_u-Ll,100,green falls,0,0
+if2_u-Ll,100,green falls but blue does not fall,1,0.01
+if2_u-Ll,100,green might fall,1,0.01
+if2_u-Ll,100,green might not fall,2,0.02
+if2_u-Ll,100,if blue does not fall green does not fall,2,0.02
+if2_u-Ll,100,if blue does not fall green falls,0,0
+if2_u-Ll,100,if blue falls green does not fall,0,0
+if2_u-Ll,100,if blue falls green falls,14,0.14
+if2_u-Ll,100,if green does not fall blue does not fall,0,0
+if2_u-Ll,100,if green does not fall blue falls,0,0
+if2_u-Ll,100,if green falls blue does not fall,0,0
+if2_u-Ll,100,if green falls blue falls,0,0
+if2_u-Ll,100,neither block falls,14,0.14
+if2_ul,100,blue does not fall,0,0
+if2_ul,100,blue falls,8,0.08
+if2_ul,100,blue falls but green does not fall,23,0.23
+if2_ul,100,blue might fall,11,0.11
+if2_ul,100,blue might not fall,1,0.01
+if2_ul,100,both blocks fall,28,0.28
+if2_ul,100,green does not fall,2,0.02
+if2_ul,100,green falls,0,0
+if2_ul,100,green falls but blue does not fall,0,0
+if2_ul,100,green might fall,3,0.03
+if2_ul,100,green might not fall,1,0.01
+if2_ul,100,if blue does not fall green does not fall,0,0
+if2_ul,100,if blue does not fall green falls,0,0
+if2_ul,100,if blue falls green does not fall,0,0
+if2_ul,100,if blue falls green falls,17,0.17
+if2_ul,100,if green does not fall blue does not fall,0,0
+if2_ul,100,if green does not fall blue falls,0,0
+if2_ul,100,if green falls blue does not fall,0,0
+if2_ul,100,if green falls blue falls,0,0
+if2_ul,100,neither block falls,6,0.06
+independent_hh,100,blue does not fall,0,0
+independent_hh,100,blue falls,3,0.03
+independent_hh,100,blue falls but green does not fall,4,0.04
+independent_hh,100,blue might fall,0,0
+independent_hh,100,blue might not fall,1,0.01
+independent_hh,100,both blocks fall,73,0.73
+independent_hh,100,green does not fall,0,0
+independent_hh,100,green falls,3,0.03
+independent_hh,100,green falls but blue does not fall,10,0.1
+independent_hh,100,green might fall,3,0.03
+independent_hh,100,green might not fall,0,0
+independent_hh,100,if blue does not fall green does not fall,0,0
+independent_hh,100,if blue does not fall green falls,0,0
+independent_hh,100,if blue falls green does not fall,0,0
+independent_hh,100,if blue falls green falls,0,0
+independent_hh,100,if green does not fall blue does not fall,0,0
+independent_hh,100,if green does not fall blue falls,1,0.01
+independent_hh,100,if green falls blue does not fall,0,0
+independent_hh,100,if green falls blue falls,0,0
+independent_hh,100,neither block falls,2,0.02
+independent_hl,100,blue does not fall,1,0.01
+independent_hl,100,blue falls,14,0.14
+independent_hl,100,blue falls but green does not fall,44,0.44
+independent_hl,100,blue might fall,6,0.06
+independent_hl,100,blue might not fall,1,0.01
+independent_hl,100,both blocks fall,20,0.2
+independent_hl,100,green does not fall,1,0.01
+independent_hl,100,green falls,0,0
+independent_hl,100,green falls but blue does not fall,4,0.04
+independent_hl,100,green might fall,6,0.06
+independent_hl,100,green might not fall,0,0
+independent_hl,100,if blue does not fall green does not fall,0,0
+independent_hl,100,if blue does not fall green falls,0,0
+independent_hl,100,if blue falls green does not fall,0,0
+independent_hl,100,if blue falls green falls,0,0
+independent_hl,100,if green does not fall blue does not fall,0,0
+independent_hl,100,if green does not fall blue falls,0,0
+independent_hl,100,if green falls blue does not fall,0,0
+independent_hl,100,if green falls blue falls,0,0
+independent_hl,100,neither block falls,3,0.03
+independent_ll,100,blue does not fall,5,0.05
+independent_ll,100,blue falls,2,0.02
+independent_ll,100,blue falls but green does not fall,6,0.06
+independent_ll,100,blue might fall,4,0.04
+independent_ll,100,blue might not fall,1,0.01
+independent_ll,100,both blocks fall,4,0.04
+independent_ll,100,green does not fall,2,0.02
+independent_ll,100,green falls,1,0.01
+independent_ll,100,green falls but blue does not fall,21,0.21
+independent_ll,100,green might fall,10,0.1
+independent_ll,100,green might not fall,2,0.02
+independent_ll,100,if blue does not fall green does not fall,1,0.01
+independent_ll,100,if blue does not fall green falls,0,0
+independent_ll,100,if blue falls green does not fall,1,0.01
+independent_ll,100,if blue falls green falls,0,0
+independent_ll,100,if green does not fall blue does not fall,0,0
+independent_ll,100,if green does not fall blue falls,0,0
+independent_ll,100,if green falls blue does not fall,0,0
+independent_ll,100,if green falls blue falls,0,0
+independent_ll,100,neither block falls,40,0.4
+independent_uh,100,blue does not fall,0,0
+independent_uh,100,blue falls,3,0.03
+independent_uh,100,blue falls but green does not fall,7,0.07
+independent_uh,100,blue might fall,9,0.09
+independent_uh,100,blue might not fall,0,0
+independent_uh,100,both blocks fall,39,0.39
+independent_uh,100,green does not fall,0,0
+independent_uh,100,green falls,10,0.1
+independent_uh,100,green falls but blue does not fall,22,0.22
+independent_uh,100,green might fall,5,0.05
+independent_uh,100,green might not fall,2,0.02
+independent_uh,100,if blue does not fall green does not fall,0,0
+independent_uh,100,if blue does not fall green falls,1,0.01
+independent_uh,100,if blue falls green does not fall,0,0
+independent_uh,100,if blue falls green falls,0,0
+independent_uh,100,if green does not fall blue does not fall,0,0
+independent_uh,100,if green does not fall blue falls,0,0
+independent_uh,100,if green falls blue does not fall,0,0
+independent_uh,100,if green falls blue falls,0,0
+independent_uh,100,neither block falls,2,0.02
+independent_ul,100,blue does not fall,2,0.02
+independent_ul,100,blue falls,2,0.02
+independent_ul,100,blue falls but green does not fall,22,0.22
+independent_ul,100,blue might fall,26,0.26
+independent_ul,100,blue might not fall,3,0.03
+independent_ul,100,both blocks fall,16,0.16
+independent_ul,100,green does not fall,2,0.02
+independent_ul,100,green falls,1,0.01
+independent_ul,100,green falls but blue does not fall,4,0.04
+independent_ul,100,green might fall,10,0.1
+independent_ul,100,green might not fall,2,0.02
+independent_ul,100,if blue does not fall green does not fall,0,0
+independent_ul,100,if blue does not fall green falls,0,0
+independent_ul,100,if blue falls green does not fall,0,0
+independent_ul,100,if blue falls green falls,2,0.02
+independent_ul,100,if green does not fall blue does not fall,0,0
+independent_ul,100,if green does not fall blue falls,0,0
+independent_ul,100,if green falls blue does not fall,0,0
+independent_ul,100,if green falls blue falls,0,0
+independent_ul,100,neither block falls,8,0.08

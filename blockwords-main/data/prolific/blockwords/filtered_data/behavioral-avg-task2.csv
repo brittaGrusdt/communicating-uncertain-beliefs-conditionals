@@ -1,0 +1,261 @@
+id,N,utterance,count,ratio
+if1_hh,89,blue does not fall,1,0.011235955056179775
+if1_hh,89,blue falls,1,0.011235955056179775
+if1_hh,89,blue falls but green does not fall,2,0.02247191011235955
+if1_hh,89,blue might fall,1,0.011235955056179775
+if1_hh,89,blue might not fall,0,0
+if1_hh,89,both blocks fall,65,0.7303370786516854
+if1_hh,89,green does not fall,0,0
+if1_hh,89,green falls,0,0
+if1_hh,89,green falls but blue does not fall,2,0.02247191011235955
+if1_hh,89,green might fall,1,0.011235955056179775
+if1_hh,89,green might not fall,1,0.011235955056179775
+if1_hh,89,if blue does not fall green does not fall,1,0.011235955056179775
+if1_hh,89,if blue does not fall green falls,0,0
+if1_hh,89,if blue falls green does not fall,0,0
+if1_hh,89,if blue falls green falls,13,0.14606741573033707
+if1_hh,89,if green does not fall blue does not fall,0,0
+if1_hh,89,if green does not fall blue falls,0,0
+if1_hh,89,if green falls blue does not fall,0,0
+if1_hh,89,if green falls blue falls,0,0
+if1_hh,89,neither block falls,1,0.011235955056179775
+if1_lh,89,blue does not fall,1,0.011235955056179775
+if1_lh,89,blue falls,1,0.011235955056179775
+if1_lh,89,blue falls but green does not fall,5,0.056179775280898875
+if1_lh,89,blue might fall,2,0.02247191011235955
+if1_lh,89,blue might not fall,0,0
+if1_lh,89,both blocks fall,8,0.0898876404494382
+if1_lh,89,green does not fall,0,0
+if1_lh,89,green falls,3,0.033707865168539325
+if1_lh,89,green falls but blue does not fall,16,0.1797752808988764
+if1_lh,89,green might fall,3,0.033707865168539325
+if1_lh,89,green might not fall,2,0.02247191011235955
+if1_lh,89,if blue does not fall green does not fall,0,0
+if1_lh,89,if blue does not fall green falls,0,0
+if1_lh,89,if blue falls green does not fall,0,0
+if1_lh,89,if blue falls green falls,10,0.11235955056179775
+if1_lh,89,if green does not fall blue does not fall,0,0
+if1_lh,89,if green does not fall blue falls,0,0
+if1_lh,89,if green falls blue does not fall,0,0
+if1_lh,89,if green falls blue falls,0,0
+if1_lh,89,neither block falls,38,0.42696629213483145
+if1_u-Lh,89,blue does not fall,0,0
+if1_u-Lh,89,blue falls,0,0
+if1_u-Lh,89,blue falls but green does not fall,4,0.0449438202247191
+if1_u-Lh,89,blue might fall,3,0.033707865168539325
+if1_u-Lh,89,blue might not fall,1,0.011235955056179775
+if1_u-Lh,89,both blocks fall,31,0.34831460674157305
+if1_u-Lh,89,green does not fall,0,0
+if1_u-Lh,89,green falls,3,0.033707865168539325
+if1_u-Lh,89,green falls but blue does not fall,3,0.033707865168539325
+if1_u-Lh,89,green might fall,5,0.056179775280898875
+if1_u-Lh,89,green might not fall,0,0
+if1_u-Lh,89,if blue does not fall green does not fall,0,0
+if1_u-Lh,89,if blue does not fall green falls,0,0
+if1_u-Lh,89,if blue falls green does not fall,0,0
+if1_u-Lh,89,if blue falls green falls,28,0.3146067415730337
+if1_u-Lh,89,if green does not fall blue does not fall,0,0
+if1_u-Lh,89,if green does not fall blue falls,0,0
+if1_u-Lh,89,if green falls blue does not fall,0,0
+if1_u-Lh,89,if green falls blue falls,0,0
+if1_u-Lh,89,neither block falls,11,0.12359550561797752
+if1_uh,89,blue does not fall,1,0.011235955056179775
+if1_uh,89,blue falls,0,0
+if1_uh,89,blue falls but green does not fall,3,0.033707865168539325
+if1_uh,89,blue might fall,6,0.06741573033707865
+if1_uh,89,blue might not fall,1,0.011235955056179775
+if1_uh,89,both blocks fall,35,0.39325842696629215
+if1_uh,89,green does not fall,0,0
+if1_uh,89,green falls,1,0.011235955056179775
+if1_uh,89,green falls but blue does not fall,2,0.02247191011235955
+if1_uh,89,green might fall,3,0.033707865168539325
+if1_uh,89,green might not fall,1,0.011235955056179775
+if1_uh,89,if blue does not fall green does not fall,1,0.011235955056179775
+if1_uh,89,if blue does not fall green falls,0,0
+if1_uh,89,if blue falls green does not fall,0,0
+if1_uh,89,if blue falls green falls,32,0.3595505617977528
+if1_uh,89,if green does not fall blue does not fall,0,0
+if1_uh,89,if green does not fall blue falls,0,0
+if1_uh,89,if green falls blue does not fall,0,0
+if1_uh,89,if green falls blue falls,0,0
+if1_uh,89,neither block falls,3,0.033707865168539325
+if2_hl,89,blue does not fall,0,0
+if2_hl,89,blue falls,4,0.0449438202247191
+if2_hl,89,blue falls but green does not fall,25,0.2808988764044944
+if2_hl,89,blue might fall,7,0.07865168539325842
+if2_hl,89,blue might not fall,0,0
+if2_hl,89,both blocks fall,36,0.4044943820224719
+if2_hl,89,green does not fall,2,0.02247191011235955
+if2_hl,89,green falls,1,0.011235955056179775
+if2_hl,89,green falls but blue does not fall,1,0.011235955056179775
+if2_hl,89,green might fall,0,0
+if2_hl,89,green might not fall,0,0
+if2_hl,89,if blue does not fall green does not fall,1,0.011235955056179775
+if2_hl,89,if blue does not fall green falls,0,0
+if2_hl,89,if blue falls green does not fall,0,0
+if2_hl,89,if blue falls green falls,11,0.12359550561797752
+if2_hl,89,if green does not fall blue does not fall,0,0
+if2_hl,89,if green does not fall blue falls,0,0
+if2_hl,89,if green falls blue does not fall,0,0
+if2_hl,89,if green falls blue falls,0,0
+if2_hl,89,neither block falls,1,0.011235955056179775
+if2_ll,89,blue does not fall,0,0
+if2_ll,89,blue falls,0,0
+if2_ll,89,blue falls but green does not fall,7,0.07865168539325842
+if2_ll,89,blue might fall,4,0.0449438202247191
+if2_ll,89,blue might not fall,4,0.0449438202247191
+if2_ll,89,both blocks fall,16,0.1797752808988764
+if2_ll,89,green does not fall,0,0
+if2_ll,89,green falls,0,0
+if2_ll,89,green falls but blue does not fall,0,0
+if2_ll,89,green might fall,5,0.056179775280898875
+if2_ll,89,green might not fall,0,0
+if2_ll,89,if blue does not fall green does not fall,2,0.02247191011235955
+if2_ll,89,if blue does not fall green falls,0,0
+if2_ll,89,if blue falls green does not fall,0,0
+if2_ll,89,if blue falls green falls,20,0.2247191011235955
+if2_ll,89,if green does not fall blue does not fall,0,0
+if2_ll,89,if green does not fall blue falls,0,0
+if2_ll,89,if green falls blue does not fall,0,0
+if2_ll,89,if green falls blue falls,1,0.011235955056179775
+if2_ll,89,neither block falls,30,0.33707865168539325
+if2_u-Ll,89,blue does not fall,0,0
+if2_u-Ll,89,blue falls,5,0.056179775280898875
+if2_u-Ll,89,blue falls but green does not fall,17,0.19101123595505617
+if2_u-Ll,89,blue might fall,12,0.1348314606741573
+if2_u-Ll,89,blue might not fall,2,0.02247191011235955
+if2_u-Ll,89,both blocks fall,22,0.24719101123595505
+if2_u-Ll,89,green does not fall,2,0.02247191011235955
+if2_u-Ll,89,green falls,0,0
+if2_u-Ll,89,green falls but blue does not fall,1,0.011235955056179775
+if2_u-Ll,89,green might fall,1,0.011235955056179775
+if2_u-Ll,89,green might not fall,1,0.011235955056179775
+if2_u-Ll,89,if blue does not fall green does not fall,2,0.02247191011235955
+if2_u-Ll,89,if blue does not fall green falls,0,0
+if2_u-Ll,89,if blue falls green does not fall,0,0
+if2_u-Ll,89,if blue falls green falls,13,0.14606741573033707
+if2_u-Ll,89,if green does not fall blue does not fall,0,0
+if2_u-Ll,89,if green does not fall blue falls,0,0
+if2_u-Ll,89,if green falls blue does not fall,0,0
+if2_u-Ll,89,if green falls blue falls,0,0
+if2_u-Ll,89,neither block falls,11,0.12359550561797752
+if2_ul,88,blue does not fall,0,0
+if2_ul,88,blue falls,4,0.045454545454545456
+if2_ul,88,blue falls but green does not fall,21,0.23863636363636365
+if2_ul,88,blue might fall,9,0.10227272727272728
+if2_ul,88,blue might not fall,1,0.011363636363636364
+if2_ul,88,both blocks fall,26,0.29545454545454547
+if2_ul,88,green does not fall,2,0.022727272727272728
+if2_ul,88,green falls,0,0
+if2_ul,88,green falls but blue does not fall,0,0
+if2_ul,88,green might fall,2,0.022727272727272728
+if2_ul,88,green might not fall,1,0.011363636363636364
+if2_ul,88,if blue does not fall green does not fall,0,0
+if2_ul,88,if blue does not fall green falls,0,0
+if2_ul,88,if blue falls green does not fall,0,0
+if2_ul,88,if blue falls green falls,16,0.18181818181818182
+if2_ul,88,if green does not fall blue does not fall,0,0
+if2_ul,88,if green does not fall blue falls,0,0
+if2_ul,88,if green falls blue does not fall,0,0
+if2_ul,88,if green falls blue falls,0,0
+if2_ul,88,neither block falls,6,0.06818181818181818
+independent_hh,88,blue does not fall,0,0
+independent_hh,88,blue falls,2,0.022727272727272728
+independent_hh,88,blue falls but green does not fall,4,0.045454545454545456
+independent_hh,88,blue might fall,0,0
+independent_hh,88,blue might not fall,0,0
+independent_hh,88,both blocks fall,68,0.7727272727272727
+independent_hh,88,green does not fall,0,0
+independent_hh,88,green falls,2,0.022727272727272728
+independent_hh,88,green falls but blue does not fall,8,0.09090909090909091
+independent_hh,88,green might fall,2,0.022727272727272728
+independent_hh,88,green might not fall,0,0
+independent_hh,88,if blue does not fall green does not fall,0,0
+independent_hh,88,if blue does not fall green falls,0,0
+independent_hh,88,if blue falls green does not fall,0,0
+independent_hh,88,if blue falls green falls,0,0
+independent_hh,88,if green does not fall blue does not fall,0,0
+independent_hh,88,if green does not fall blue falls,1,0.011363636363636364
+independent_hh,88,if green falls blue does not fall,0,0
+independent_hh,88,if green falls blue falls,0,0
+independent_hh,88,neither block falls,1,0.011363636363636364
+independent_hl,89,blue does not fall,1,0.011235955056179775
+independent_hl,89,blue falls,11,0.12359550561797752
+independent_hl,89,blue falls but green does not fall,40,0.449438202247191
+independent_hl,89,blue might fall,5,0.056179775280898875
+independent_hl,89,blue might not fall,1,0.011235955056179775
+independent_hl,89,both blocks fall,19,0.21348314606741572
+independent_hl,89,green does not fall,1,0.011235955056179775
+independent_hl,89,green falls,0,0
+independent_hl,89,green falls but blue does not fall,4,0.0449438202247191
+independent_hl,89,green might fall,6,0.06741573033707865
+independent_hl,89,green might not fall,0,0
+independent_hl,89,if blue does not fall green does not fall,0,0
+independent_hl,89,if blue does not fall green falls,0,0
+independent_hl,89,if blue falls green does not fall,0,0
+independent_hl,89,if blue falls green falls,0,0
+independent_hl,89,if green does not fall blue does not fall,0,0
+independent_hl,89,if green does not fall blue falls,0,0
+independent_hl,89,if green falls blue does not fall,0,0
+independent_hl,89,if green falls blue falls,0,0
+independent_hl,89,neither block falls,1,0.011235955056179775
+independent_ll,88,blue does not fall,5,0.056818181818181816
+independent_ll,88,blue falls,1,0.011363636363636364
+independent_ll,88,blue falls but green does not fall,4,0.045454545454545456
+independent_ll,88,blue might fall,4,0.045454545454545456
+independent_ll,88,blue might not fall,1,0.011363636363636364
+independent_ll,88,both blocks fall,2,0.022727272727272728
+independent_ll,88,green does not fall,0,0
+independent_ll,88,green falls,1,0.011363636363636364
+independent_ll,88,green falls but blue does not fall,21,0.23863636363636365
+independent_ll,88,green might fall,10,0.11363636363636363
+independent_ll,88,green might not fall,2,0.022727272727272728
+independent_ll,88,if blue does not fall green does not fall,1,0.011363636363636364
+independent_ll,88,if blue does not fall green falls,0,0
+independent_ll,88,if blue falls green does not fall,1,0.011363636363636364
+independent_ll,88,if blue falls green falls,0,0
+independent_ll,88,if green does not fall blue does not fall,0,0
+independent_ll,88,if green does not fall blue falls,0,0
+independent_ll,88,if green falls blue does not fall,0,0
+independent_ll,88,if green falls blue falls,0,0
+independent_ll,88,neither block falls,35,0.3977272727272727
+independent_uh,88,blue does not fall,0,0
+independent_uh,88,blue falls,1,0.011363636363636364
+independent_uh,88,blue falls but green does not fall,6,0.06818181818181818
+independent_uh,88,blue might fall,8,0.09090909090909091
+independent_uh,88,blue might not fall,0,0
+independent_uh,88,both blocks fall,33,0.375
+independent_uh,88,green does not fall,0,0
+independent_uh,88,green falls,9,0.10227272727272728
+independent_uh,88,green falls but blue does not fall,21,0.23863636363636365
+independent_uh,88,green might fall,5,0.056818181818181816
+independent_uh,88,green might not fall,2,0.022727272727272728
+independent_uh,88,if blue does not fall green does not fall,0,0
+independent_uh,88,if blue does not fall green falls,1,0.011363636363636364
+independent_uh,88,if blue falls green does not fall,0,0
+independent_uh,88,if blue falls green falls,0,0
+independent_uh,88,if green does not fall blue does not fall,0,0
+independent_uh,88,if green does not fall blue falls,0,0
+independent_uh,88,if green falls blue does not fall,0,0
+independent_uh,88,if green falls blue falls,0,0
+independent_uh,88,neither block falls,2,0.022727272727272728
+independent_ul,89,blue does not fall,1,0.011235955056179775
+independent_ul,89,blue falls,0,0
+independent_ul,89,blue falls but green does not fall,21,0.23595505617977527
+independent_ul,89,blue might fall,24,0.2696629213483146
+independent_ul,89,blue might not fall,3,0.033707865168539325
+independent_ul,89,both blocks fall,14,0.15730337078651685
+independent_ul,89,green does not fall,2,0.02247191011235955
+independent_ul,89,green falls,1,0.011235955056179775
+independent_ul,89,green falls but blue does not fall,4,0.0449438202247191
+independent_ul,89,green might fall,8,0.0898876404494382
+independent_ul,89,green might not fall,2,0.02247191011235955
+independent_ul,89,if blue does not fall green does not fall,0,0
+independent_ul,89,if blue does not fall green falls,0,0
+independent_ul,89,if blue falls green does not fall,0,0
+independent_ul,89,if blue falls green falls,2,0.02247191011235955
+independent_ul,89,if green does not fall blue does not fall,0,0
+independent_ul,89,if green does not fall blue falls,0,0
+independent_ul,89,if green falls blue does not fall,0,0
+independent_ul,89,if green falls blue falls,0,0
+independent_ul,89,neither block falls,7,0.07865168539325842

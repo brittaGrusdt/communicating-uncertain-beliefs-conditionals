@@ -1,0 +1,91 @@
+default:
+  exp_name: "blockwords"
+  dir_empiric: "./data/prolific/blockwords"
+  generate_utterances: false
+  seed_tables: 202008
+  save: true
+  cost_conditional: 0
+  alpha: 3
+  theta: 0.7
+  verbose: true
+  cns: !expr c("A implies C", "C implies A", "A implies -C", "C implies -A", "A || C")
+  packages:  !expr c(here("model", "webppl-model", "node_modules", "conditionalsHelpers"),
+                     here("model", "webppl-model", "node_modules", "conditionalsDefault"))
+  model_path: !expr here("model", "webppl-model", "default-model", "default-model.wppl")
+  #seed_webppl: !expr as.numeric(Sys.time())
+  seed_webppl: 123467
+  vars: !expr c("A", "C")
+  bias: "none"
+
+# only add new variables, since if more than two config-ids are loaded
+# default value is taken again if it does not appear in a later loaded config-id,
+# although it had been overwritten in a previously loaded config-id
+model_abstract_prior: &model_abstract_prior
+  dir_empiric: "./data/prolific/blockwords/filtered_data"
+  target_dir: "./model/results/abstract-prior"
+  utts_path: "./model/data/utterances-abstract-prior.rds"
+  tables_mapping: "./model/data/mapping-tables-abstract-prior-ids.rds"
+  n_best_latent: 3
+
+model_dirichlet_prior: &model_dirichlet_prior
+  dir_empiric: "./data/prolific/blockwords/filtered_data"
+  target_dir: "./model/results/dirichlet-prior"
+  utts_path: "./model/data/utterances-dirichlet-prior.rds"
+  target_fits: "params-fitted-dirichlet.csv"
+  tables_mapping: "./model/data/mapping-tables-dirichlet-prior-ids.rds"
+  # n_best_latent: !expr Inf # set to Inf for including all
+  n_best_latent: 13
+
+tables_dirichlet_prior_with_empirical:
+  <<: *model_dirichlet_prior
+  tables_empiric: "./model/data/tables-dirichlet-prior-toWPPL-with-empirical.rds"
+  target_uniq_tables: "./model/data/tables-dirichlet-prior-unique-toWPPL.rds"
+  target_fn: "results-speaker-empirical.rds"
+  target_params: "params-speaker-empirical.rds"
+
+
+tables_abstract_prior_with_empirical:
+  <<: *model_abstract_prior
+  tables_empiric: "./model/data/tables-abstract-prior-toWPPL-with-empirical.rds"
+  target_uniq_tables: "./model/data/tables-abstract-prior-unique-toWPPL.rds"
+  target_fn: "results-speaker-empirical.rds"
+  target_params: "params-speaker-empirical.rds"
+
+
+## 2. Level configurations ##
+# @arg utt: - if set to "p_delta" or "p_rooij", respective value must be
+#           large (see in webppl file) for all states given to the speaker,
+#           - if set to "" no condition, just sampled from prior as usual
+speaker:
+  level_max: "speaker"
+  utt: ""
+  target_fn: "results-speaker.rds"
+  target_params: "params-speaker.rds"
+  n_samples: 0 # bns given by empirical tables
+
+abstract_tables:
+  n_ind_tables: 6000
+  n_dep_tables: 1500
+  indep_sigma: 0.005
+  beta_neg_a: 1
+  beta_neg_b: 10
+  beta_pos_a: 10
+  beta_pos_b: 1
+  beta_marg_a: 1
+  beta_marg_b: 1
+  target_dir: "./model/data"
+  tables_path: "tables-abstract-prior-toWPPL.rds"
+  target_params: "params-tables-abstract-prior.rds"
+  target_mapping: "./model/data/mapping-tables-abstract-prior-ids.rds"
+  target_uniq_tables: "./model/data/tables-abstract-prior-unique-toWPPL.rds"
+
+dirichlet_tables:
+  n_all_contexts: 13
+  target_dir: "./model/data"
+  tables_path: "tables-dirichlet-prior-toWPPL.rds"
+  target_params: "params-tables-dirichlet-prior.rds"
+  target_mapping: "./model/data/mapping-tables-dirichlet-prior-ids.rds"
+  target_uniq_tables: "./model/data/tables-dirichlet-prior-unique-toWPPL.rds"
+
+
+# there needs to be 1 blank final line!

@@ -1,0 +1,60 @@
+body {
+    font-family: Tahoma, Helvetica, Arial, sans-serif;
+}
+
+.top {
+    border-bottom: 1px solid #eee;
+    display: block;
+    margin-bottom: 33px;
+}
+
+.top a {
+    background: #FFF;
+    padding-right: 10px;
+    position: relative;
+    top: 8px;
+}
+
+.syntaxhighlighter {
+    padding: .5em 0;
+}
+
+blockquote.bg-warning.Zebra_Pin {
+    border-bottom: 1px solid #ccc;
+    box-shadow: 0 12px 6px -6px rgba(0, 0, 0, .1);
+    transition: box-shadow .25s linear;
+}
+
+.myclass .ZebraDialog_Title {
+    background: #330066;
+}
+
+body.materialize .myclass .ZebraDialog_Title {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: #FFF;
+    font-size: 19px;
+}
+
+.myclass .ZebraDialog_Body {
+    background-image: url('coffee_48.png');
+    font-size: 21px;
+}
+
+body.flat .myclass .ZebraDialog_Title {
+    background: #DEDEDE;
+    border-bottom: 1px solid #222;
+}
+
+body.flat .myclass .ZebraDialog_Body {
+    background-position: 40px 28px;
+}
+
+.ZebraDialog_iFrame .ZebraDialog_Body {
+    padding: 0;
+}
+
+body.flat .ZebraDialog_iFrame .ZebraDialog_Body,
+body.materialize .ZebraDialog_iFrame .ZebraDialog_Body {
+    margin-bottom: 0;
+}

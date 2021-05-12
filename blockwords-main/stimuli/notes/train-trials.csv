@@ -1,0 +1,31 @@
+block,color,falls,orientation,prior,cause,id,learns
+left_block,yellow,TRUE,vert,uncertainH,edge,ssw0,uncertain falls
+right_block,red,TRUE,horiz,low,edge/seesaw,ssw0,on top of other block
+left_block,red,TRUE,vert,high,ball-ramp,ind1,ramp high
+right_block,yellow,TRUE,vert,uncertainH,edge,ind1,uncertain falls
+left_block,red,FALSE,vert,low,edge,uncertain3,edge high
+right_block,yellow,TRUE,vert,high,edge,uncertain3,edge low
+left_block,yellow,FALSE,vert,uncertainL,edge,ac3,uncertain does not fall
+right_block,red,FALSE,horiz,high,edge/seesaw,ac3,
+left_block,red,FALSE,horiz,uncertainL,edge,uncertain0,uncertain does not fall
+right_block,yellow,TRUE,vert,uncertainH,edge,uncertain0,uncertain falls
+left_block,red,TRUE,horiz,high,edge,uncertain2,on top of other block
+right_block,yellow,FALSE,vert,uncertainL,edge,uncertain2,uncertain does not fall
+left_block,red,FALSE,vert,uncertainL,edge,ssw1,uncertain does not fall
+right_block,yellow,FALSE,horiz,low,edge,ssw1,on top of other block
+left_block,red,TRUE,horiz,uncertainH,edge,ac2,uncertain falls
+right_block,yellow,TRUE,vert,uncertainH,ball-if,ac2,ramp uncertain
+left_block,red,TRUE,horiz,uncertainH,edge,uncertain1,uncertain falls
+right_block,yellow,FALSE,horiz,low,edge,uncertain1,on top of other block
+upper block,yellow,FALSE,horiz,uncertainL,ball-ramp,distance0,ramp distance
+lower block,red,TRUE,horiz,uncertainH,ball-ramp,distance0,ramp distance
+upper block,red,FALSE,vert,uncertainL,ball-ramp,distance1,ramp distance
+lower block,yellow,TRUE,vert,uncertainH,ball-ramp,distance1,ramp distance
+left_block,yellow,TRUE,vert,high,edge,ac1,edge high
+right_block,red,FALSE,vert,low,ball-if,ac1,ramp low
+left_block,red,TRUE,vert,uncertainH,ball-ramp,ind0,ramp uncertain
+right_block,yellow,FALSE,vert,lowH,edge,ind0,edge low
+left_block,red,TRUE,horiz,high,edge,ac0,edge high
+right_block,yellow,TRUE,horiz,high,ball-if,ac0,ramp high
+left_block,red,FALSE,horiz,uncertainL,ball-ramp,ind2,ramp uncertain
+right_block,yellow,FALSE,vert,high,edge,ind2,edge high

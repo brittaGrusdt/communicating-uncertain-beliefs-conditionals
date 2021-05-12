@@ -1,0 +1,261 @@
+stimulus,utterance,p,best.utt
+if1_hh,blue does not fall,0.005,FALSE
+if1_hh,if blue does not fall green does not fall,0,FALSE
+if1_hh,if blue does not fall green falls,0.011,FALSE
+if1_hh,green does not fall,0,FALSE
+if1_hh,if green does not fall blue does not fall,0.011,FALSE
+if1_hh,if green does not fall blue falls,0.075,FALSE
+if1_hh,neither block falls,0,FALSE
+if1_hh,blue falls but green does not fall,0,FALSE
+if1_hh,blue falls,0.056,FALSE
+if1_hh,if blue falls green does not fall,0,FALSE
+if1_hh,if blue falls green falls,0.102,FALSE
+if1_hh,green falls,0.062,FALSE
+if1_hh,if green falls blue does not fall,0.008,FALSE
+if1_hh,if green falls blue falls,0.074,FALSE
+if1_hh,green falls but blue does not fall,0,FALSE
+if1_hh,both blocks fall,0.537,TRUE
+if1_hh,blue might not fall,0.004,FALSE
+if1_hh,green might not fall,0.015,FALSE
+if1_hh,blue might fall,0.02,FALSE
+if1_hh,green might fall,0.02,FALSE
+if1_lh,blue does not fall,0.024,FALSE
+if1_lh,if blue does not fall green does not fall,0.028,FALSE
+if1_lh,if blue does not fall green falls,0.021,FALSE
+if1_lh,green does not fall,0.011,FALSE
+if1_lh,if green does not fall blue does not fall,0.039,FALSE
+if1_lh,if green does not fall blue falls,0.001,FALSE
+if1_lh,neither block falls,0.627,TRUE
+if1_lh,blue falls but green does not fall,0.02,FALSE
+if1_lh,blue falls,0,FALSE
+if1_lh,if blue falls green does not fall,0.003,FALSE
+if1_lh,if blue falls green falls,0.009,FALSE
+if1_lh,green falls,0.009,FALSE
+if1_lh,if green falls blue does not fall,0.025,FALSE
+if1_lh,if green falls blue falls,0,FALSE
+if1_lh,green falls but blue does not fall,0.171,FALSE
+if1_lh,both blocks fall,0,FALSE
+if1_lh,blue might not fall,0.008,FALSE
+if1_lh,green might not fall,0.002,FALSE
+if1_lh,blue might fall,0.001,FALSE
+if1_lh,green might fall,0.002,FALSE
+if1_u-Lh,blue does not fall,0.008,FALSE
+if1_u-Lh,if blue does not fall green does not fall,0.005,FALSE
+if1_u-Lh,if blue does not fall green falls,0.106,FALSE
+if1_u-Lh,green does not fall,0.002,FALSE
+if1_u-Lh,if green does not fall blue does not fall,0.003,FALSE
+if1_u-Lh,if green does not fall blue falls,0.086,FALSE
+if1_u-Lh,neither block falls,0.113,FALSE
+if1_u-Lh,blue falls but green does not fall,0,FALSE
+if1_u-Lh,blue falls,0.056,FALSE
+if1_u-Lh,if blue falls green does not fall,0,FALSE
+if1_u-Lh,if blue falls green falls,0.102,FALSE
+if1_u-Lh,green falls,0.062,FALSE
+if1_u-Lh,if green falls blue does not fall,0.009,FALSE
+if1_u-Lh,if green falls blue falls,0.074,FALSE
+if1_u-Lh,green falls but blue does not fall,0.095,FALSE
+if1_u-Lh,both blocks fall,0.171,TRUE
+if1_u-Lh,blue might not fall,0.026,FALSE
+if1_u-Lh,green might not fall,0.026,FALSE
+if1_u-Lh,blue might fall,0.027,FALSE
+if1_u-Lh,green might fall,0.027,FALSE
+if1_uh,blue does not fall,0,FALSE
+if1_uh,if blue does not fall green does not fall,0,FALSE
+if1_uh,if blue does not fall green falls,0.037,FALSE
+if1_uh,green does not fall,0.006,FALSE
+if1_uh,if green does not fall blue does not fall,0,FALSE
+if1_uh,if green does not fall blue falls,0.04,FALSE
+if1_uh,neither block falls,0,FALSE
+if1_uh,blue falls but green does not fall,0.069,FALSE
+if1_uh,blue falls,0.047,FALSE
+if1_uh,if blue falls green does not fall,0.009,FALSE
+if1_uh,if blue falls green falls,0.112,FALSE
+if1_uh,green falls,0.068,FALSE
+if1_uh,if green falls blue does not fall,0,FALSE
+if1_uh,if green falls blue falls,0.062,FALSE
+if1_uh,green falls but blue does not fall,0,FALSE
+if1_uh,both blocks fall,0.493,TRUE
+if1_uh,blue might not fall,0.009,FALSE
+if1_uh,green might not fall,0.01,FALSE
+if1_uh,blue might fall,0.019,FALSE
+if1_uh,green might fall,0.019,FALSE
+if2_hl,blue does not fall,0,FALSE
+if2_hl,if blue does not fall green does not fall,0.032,FALSE
+if2_hl,if blue does not fall green falls,0,FALSE
+if2_hl,green does not fall,0.025,FALSE
+if2_hl,if green does not fall blue does not fall,0,FALSE
+if2_hl,if green does not fall blue falls,0.079,FALSE
+if2_hl,neither block falls,0,FALSE
+if2_hl,blue falls but green does not fall,0.229,FALSE
+if2_hl,blue falls,0.052,FALSE
+if2_hl,if blue falls green does not fall,0.039,FALSE
+if2_hl,if blue falls green falls,0.058,FALSE
+if2_hl,green falls,0.035,FALSE
+if2_hl,if green falls blue does not fall,0,FALSE
+if2_hl,if green falls blue falls,0.066,FALSE
+if2_hl,green falls but blue does not fall,0,FALSE
+if2_hl,both blocks fall,0.329,TRUE
+if2_hl,blue might not fall,0.001,FALSE
+if2_hl,green might not fall,0.02,FALSE
+if2_hl,blue might fall,0.018,FALSE
+if2_hl,green might fall,0.016,FALSE
+if2_ll,blue does not fall,0.004,FALSE
+if2_ll,if blue does not fall green does not fall,0.161,FALSE
+if2_ll,if blue does not fall green falls,0,FALSE
+if2_ll,green does not fall,0.062,FALSE
+if2_ll,if green does not fall blue does not fall,0.009,FALSE
+if2_ll,if green does not fall blue falls,0.003,FALSE
+if2_ll,neither block falls,0.324,TRUE
+if2_ll,blue falls but green does not fall,0.11,FALSE
+if2_ll,blue falls,0.011,FALSE
+if2_ll,if blue falls green does not fall,0.088,FALSE
+if2_ll,if blue falls green falls,0.026,FALSE
+if2_ll,green falls,0.016,FALSE
+if2_ll,if green falls blue does not fall,0,FALSE
+if2_ll,if green falls blue falls,0.013,FALSE
+if2_ll,green falls but blue does not fall,0,FALSE
+if2_ll,both blocks fall,0.146,FALSE
+if2_ll,blue might not fall,0.011,FALSE
+if2_ll,green might not fall,0.006,FALSE
+if2_ll,blue might fall,0.007,FALSE
+if2_ll,green might fall,0.003,FALSE
+if2_u-Ll,blue does not fall,0.003,FALSE
+if2_u-Ll,if blue does not fall green does not fall,0.108,FALSE
+if2_u-Ll,if blue does not fall green falls,0.015,FALSE
+if2_u-Ll,green does not fall,0.041,FALSE
+if2_u-Ll,if green does not fall blue does not fall,0.005,FALSE
+if2_u-Ll,if green does not fall blue falls,0.082,FALSE
+if2_u-Ll,neither block falls,0.209,TRUE
+if2_u-Ll,blue falls but green does not fall,0.059,FALSE
+if2_u-Ll,blue falls,0.047,FALSE
+if2_u-Ll,if blue falls green does not fall,0.058,FALSE
+if2_u-Ll,if blue falls green falls,0.041,FALSE
+if2_u-Ll,green falls,0.025,FALSE
+if2_u-Ll,if green falls blue does not fall,0,FALSE
+if2_u-Ll,if green falls blue falls,0.061,FALSE
+if2_u-Ll,green falls but blue does not fall,0,FALSE
+if2_u-Ll,both blocks fall,0.175,FALSE
+if2_u-Ll,blue might not fall,0.011,FALSE
+if2_u-Ll,green might not fall,0.024,FALSE
+if2_u-Ll,blue might fall,0.019,FALSE
+if2_u-Ll,green might fall,0.016,FALSE
+if2_ul,blue does not fall,0.001,FALSE
+if2_ul,if blue does not fall green does not fall,0.025,FALSE
+if2_ul,if blue does not fall green falls,0,FALSE
+if2_ul,green does not fall,0.021,FALSE
+if2_ul,if green does not fall blue does not fall,0.001,FALSE
+if2_ul,if green does not fall blue falls,0.143,FALSE
+if2_ul,neither block falls,0.04,FALSE
+if2_ul,blue falls but green does not fall,0.14,FALSE
+if2_ul,blue falls,0.084,FALSE
+if2_ul,if blue falls green does not fall,0.031,FALSE
+if2_ul,if blue falls green falls,0.042,FALSE
+if2_ul,green falls,0.026,FALSE
+if2_ul,if green falls blue does not fall,0,FALSE
+if2_ul,if green falls blue falls,0.109,FALSE
+if2_ul,green falls but blue does not fall,0,FALSE
+if2_ul,both blocks fall,0.239,TRUE
+if2_ul,blue might not fall,0.002,FALSE
+if2_ul,green might not fall,0.04,FALSE
+if2_ul,blue might fall,0.029,FALSE
+if2_ul,green might fall,0.027,FALSE
+independent_hh,blue does not fall,0.009,FALSE
+independent_hh,if blue does not fall green does not fall,0,FALSE
+independent_hh,if blue does not fall green falls,0.086,FALSE
+independent_hh,green does not fall,0.003,FALSE
+independent_hh,if green does not fall blue does not fall,0.012,FALSE
+independent_hh,if green does not fall blue falls,0.02,FALSE
+independent_hh,neither block falls,0,FALSE
+independent_hh,blue falls but green does not fall,0.035,FALSE
+independent_hh,blue falls,0.036,FALSE
+independent_hh,if blue falls green does not fall,0.005,FALSE
+independent_hh,if blue falls green falls,0.106,FALSE
+independent_hh,green falls,0.065,FALSE
+independent_hh,if green falls blue does not fall,0.014,FALSE
+independent_hh,if green falls blue falls,0.047,FALSE
+independent_hh,green falls but blue does not fall,0.068,FALSE
+independent_hh,both blocks fall,0.449,TRUE
+independent_hh,blue might not fall,0.011,FALSE
+independent_hh,green might not fall,0.005,FALSE
+independent_hh,blue might fall,0.015,FALSE
+independent_hh,green might fall,0.015,FALSE
+independent_hl,blue does not fall,0.005,FALSE
+independent_hl,if blue does not fall green does not fall,0.008,FALSE
+independent_hl,if blue does not fall green falls,0.004,FALSE
+independent_hl,green does not fall,0.024,FALSE
+independent_hl,if green does not fall blue does not fall,0.01,FALSE
+independent_hl,if green does not fall blue falls,0.154,FALSE
+independent_hl,neither block falls,0,FALSE
+independent_hl,blue falls but green does not fall,0.275,TRUE
+independent_hl,blue falls,0.085,FALSE
+independent_hl,if blue falls green does not fall,0.037,FALSE
+independent_hl,if blue falls green falls,0.025,FALSE
+independent_hl,green falls,0.015,FALSE
+independent_hl,if green falls blue does not fall,0.007,FALSE
+independent_hl,if green falls blue falls,0.11,FALSE
+independent_hl,green falls but blue does not fall,0,FALSE
+independent_hl,both blocks fall,0.14,FALSE
+independent_hl,blue might not fall,0.001,FALSE
+independent_hl,green might not fall,0.044,FALSE
+independent_hl,blue might fall,0.029,FALSE
+independent_hl,green might fall,0.027,FALSE
+independent_ll,blue does not fall,0.114,FALSE
+independent_ll,if blue does not fall green does not fall,0.037,FALSE
+independent_ll,if blue does not fall green falls,0.007,FALSE
+independent_ll,green does not fall,0.012,FALSE
+independent_ll,if green does not fall blue does not fall,0.227,FALSE
+independent_ll,if green does not fall blue falls,0,FALSE
+independent_ll,neither block falls,0.264,TRUE
+independent_ll,blue falls but green does not fall,0,FALSE
+independent_ll,blue falls,0,FALSE
+independent_ll,if blue falls green does not fall,0.013,FALSE
+independent_ll,if blue falls green falls,0.001,FALSE
+independent_ll,green falls,0.003,FALSE
+independent_ll,if green falls blue does not fall,0.167,FALSE
+independent_ll,if green falls blue falls,0,FALSE
+independent_ll,green falls but blue does not fall,0.107,FALSE
+independent_ll,both blocks fall,0,FALSE
+independent_ll,blue might not fall,0.027,FALSE
+independent_ll,green might not fall,0.013,FALSE
+independent_ll,blue might fall,0.001,FALSE
+independent_ll,green might fall,0.008,FALSE
+independent_uh,blue does not fall,0.004,FALSE
+independent_uh,if blue does not fall green does not fall,0.048,FALSE
+independent_uh,if blue does not fall green falls,0.215,TRUE
+independent_uh,green does not fall,0.016,FALSE
+independent_uh,if green does not fall blue does not fall,0,FALSE
+independent_uh,if green does not fall blue falls,0.028,FALSE
+independent_uh,neither block falls,0,FALSE
+independent_uh,blue falls but green does not fall,0.026,FALSE
+independent_uh,blue falls,0.024,FALSE
+independent_uh,if blue falls green does not fall,0.024,FALSE
+independent_uh,if blue falls green falls,0.16,FALSE
+independent_uh,green falls,0.097,FALSE
+independent_uh,if green falls blue does not fall,0.006,FALSE
+independent_uh,if green falls blue falls,0.031,FALSE
+independent_uh,green falls but blue does not fall,0.061,FALSE
+independent_uh,both blocks fall,0.152,FALSE
+independent_uh,blue might not fall,0.051,FALSE
+independent_uh,green might not fall,0.01,FALSE
+independent_uh,blue might fall,0.024,FALSE
+independent_uh,green might fall,0.023,FALSE
+independent_ul,blue does not fall,0.02,FALSE
+independent_ul,if blue does not fall green does not fall,0.165,FALSE
+independent_ul,if blue does not fall green falls,0.003,FALSE
+independent_ul,green does not fall,0.069,FALSE
+independent_ul,if green does not fall blue does not fall,0.033,FALSE
+independent_ul,if green does not fall blue falls,0.056,FALSE
+independent_ul,neither block falls,0.128,FALSE
+independent_ul,blue falls but green does not fall,0.212,TRUE
+independent_ul,blue falls,0.03,FALSE
+independent_ul,if blue falls green does not fall,0.103,FALSE
+independent_ul,if blue falls green falls,0.002,FALSE
+independent_ul,green falls,0.001,FALSE
+independent_ul,if green falls blue does not fall,0.027,FALSE
+independent_ul,if green falls blue falls,0.036,FALSE
+independent_ul,green falls but blue does not fall,0.054,FALSE
+independent_ul,both blocks fall,0,FALSE
+independent_ul,blue might not fall,0.014,FALSE
+independent_ul,green might not fall,0.023,FALSE
+independent_ul,blue might fall,0.013,FALSE
+independent_ul,green might fall,0.01,FALSE

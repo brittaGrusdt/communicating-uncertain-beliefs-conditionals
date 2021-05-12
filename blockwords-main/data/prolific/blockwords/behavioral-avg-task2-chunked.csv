@@ -1,0 +1,53 @@
+id,utterance,count,ratio
+if1_hh,might + literal,3,0.03
+if1_hh,conditional,15,0.15000000000000002
+if1_hh,literal,4,0.04
+if1_hh,conjunction,78,0.78
+if1_lh,might + literal,9,0.09
+if1_lh,conditional,10,0.1
+if1_lh,literal,5,0.05
+if1_lh,conjunction,76,0.76
+if1_u-Lh,might + literal,10,0.09999999999999999
+if1_u-Lh,conditional,28,0.28
+if1_u-Lh,literal,5,0.05
+if1_u-Lh,conjunction,57,0.57
+if1_uh,might + literal,12,0.12000000000000001
+if1_uh,conditional,34,0.34
+if1_uh,literal,3,0.03
+if1_uh,conjunction,51,0.51
+if2_hl,might + literal,8,0.08
+if2_hl,conditional,13,0.13
+if2_hl,literal,9,0.09
+if2_hl,conjunction,70,0.7
+if2_ll,might + literal,13,0.13
+if2_ll,conditional,23,0.23
+if2_ll,literal,1,0.01
+if2_ll,conjunction,63,0.63
+if2_u-Ll,might + literal,18,0.18
+if2_u-Ll,conditional,16,0.16
+if2_u-Ll,literal,10,0.1
+if2_u-Ll,conjunction,56,0.56
+if2_ul,might + literal,16,0.16
+if2_ul,conditional,17,0.17
+if2_ul,literal,10,0.1
+if2_ul,conjunction,57,0.5700000000000001
+independent_hh,might + literal,4,0.04
+independent_hh,conditional,1,0.01
+independent_hh,literal,6,0.06
+independent_hh,conjunction,89,0.89
+independent_hl,might + literal,13,0.13
+independent_hl,conditional,0,0
+independent_hl,literal,16,0.16
+independent_hl,conjunction,71,0.71
+independent_ll,might + literal,17,0.17
+independent_ll,conditional,2,0.02
+independent_ll,literal,10,0.1
+independent_ll,conjunction,71,0.71
+independent_uh,might + literal,16,0.16
+independent_uh,conditional,1,0.01
+independent_uh,literal,13,0.13
+independent_uh,conjunction,70,0.7000000000000001
+independent_ul,might + literal,41,0.41000000000000003
+independent_ul,conditional,2,0.02
+independent_ul,literal,7,0.07
+independent_ul,conjunction,50,0.5

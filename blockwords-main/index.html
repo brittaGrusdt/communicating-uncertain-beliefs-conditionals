@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+
+    <title>magpie blocksworld2.0</title>
+
+    <!-- fonts from Google fonts -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Noto+Sans:400,700|Noto+Serif:400,700|Playfair+Display:700"
+      rel="stylesheet"
+    />
+
+    <!-- add magpie.css here if you are using magpie styles -->
+    <link
+      type="text/css"
+      href="node_modules/magpie-modules/magpie.css"
+      rel="stylesheet"
+    />
+    <!-- add js dependencies here -->
+    <!-- for example jQuery and csv-js if you are using magpie.js -->
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/maps.js"></script>
+
+    <script type="text/javascript" src="node_modules/matter-js/build/matter.js"></script>
+    <!-- load local files -->
+    <link type="text/css" href="01_custom_styles.css" rel="stylesheet" />
+    <script src="node_modules/magpie-modules/magpie.full.js"></script>
+    <link rel="stylesheet" href="node_modules/zebra_dialog/dist/css/classic/zebra_dialog.css" type="text/css">
+    <script type="text/javascript" src="node_modules/zebra_dialog/dist/zebra_dialog.src.js"></script>
+
+    <script type="text/javascript" src="stimuli/00_globals.js"></script>
+    <script type="text/javascript" src="stimuli/01_config.js"></script>
+
+    <script type="text/javascript">
+      MODE = "experiment"
+    </script>
+    <script type="text/javascript" src="stimuli/02_utils.js"></script>
+    <script type="text/javascript" src="stimuli/03_elements.js"></script>
+    <script type="text/javascript" src="stimuli/04_test_stimuli.js"></script>
+    <script type="text/javascript" src="stimuli/05_train_stimuli.js"></script>
+    <script type="text/javascript" src="stimuli/06_scene.js"></script>
+    <script type="text/javascript" src="stimuli/color-vision.js"></script>
+
+    <!-- add magpie.full.js or magpie.js here -->
+    <script src="02_custom_functions.js"></script>
+    <script src="02_custom_functions_utils.js"></script>
+    <script src="grammar.js"></script>
+    <script src="03_custom_views_templates.js"></script>
+
+    <script src="04_trials.js"></script>
+    <script src="04_trials_utils.js"></script>
+    <script src="05_views.js"></script>
+    <script src="06_main.js"></script>
+
+    <!-- <script type="text/javascript">
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+    </script> -->
+  </head>
+
+  <body>
+    <!-- display a message for the users that do not use JavaScript -->
+    <noscript
+      >This task requires JavaScript. Please enable JavaScript in your browser
+      and reload the page. For more information on how to do that, please refer
+      to
+      <a href="https://enable-javascript.com" target="_blank"
+        >enable-javascript.com</a
+      >
+    </noscript>
+
+    <!-- views are inserted in main -->
+    <main id="main">
+      Loading...
+    </main>
+  </body>
+</html>

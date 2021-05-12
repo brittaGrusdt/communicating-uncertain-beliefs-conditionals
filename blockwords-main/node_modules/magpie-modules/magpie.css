@@ -1,0 +1,667 @@
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* GENERAL ELEMENT STYLES
+
+    view
+    button
+    text
+    title
+    question
+    picture
+
+*/
+.magpie-view-container {
+    min-height: 100%;
+}
+.magpie-view {
+    box-sizing: border-box;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 50px 0;
+}
+.magpie-view-title {
+    color: rgba(0, 0, 0, 0.87);
+    font-family: "Playfair Display", "Noto Serif", serif;
+    font-size: 34px;
+    text-align: center;
+}
+.magpie-view-text {
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 17px;
+    line-height: 27px;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    margin: 0 auto;
+    max-width: 550px;
+}
+.magpie-view-button {
+    background-color: #5187BA;
+    border: none;
+    border-radius: 2px;
+    color: white;
+    display: block;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    margin: 40px auto 20px auto;
+    outline: none;
+    padding: 5px 10px;
+    text-transform: uppercase;
+}
+.magpie-view-button:hover,
+.magpie-view-button:focus {
+    background-color: #324D93;
+}
+.magpie-view-question {
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 17px;
+    line-height: 27px;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    margin: 30px auto;
+    max-width: 550px;
+    text-align: center;
+}
+.magpie-view-picture {
+    height: 100%;
+    width: 100%;
+}
+.magpie-view-canvas {
+    display: block;
+    margin: 20px auto 30px auto;
+}
+.magpie-view-picture img {
+    object-fit: scale-down; /* contain to scale up */
+    width: 100%;
+    height: 100%;
+}
+.magpie-view-answer-container {
+    text-align: center;
+    margin: 45px auto;
+}
+.magpie-view-stimulus-container {
+    display: flex;
+    height: 350px;
+    margin: 0 auto;
+    width: auto;
+}
+.magpie-view-stimulus {
+    margin: 0 auto;
+}
+.magpie-help-text {
+    color: #555;
+    font-size: 17px;
+    font-style: italic;
+    text-align: center;
+}
+
+/*
+    Prolific id form
+*/
+#prolific-id-form {
+    margin: 30px auto;
+    max-width: 550px;
+}
+#prolific-id-form label {
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 17px;
+    line-height: 27px;
+    font-family: "Lato", "Noto Sans", sans-serif;
+}
+
+/*
+    FIXATION POINT
+*/
+.magpie-view-fix-point {
+    align-self: center;
+    height: 32px;
+    width: 32px;
+    margin: 0 auto;
+    position: relative;
+}
+.magpie-view-fix-point:before, .magpie-view-fix-point:after {
+  position: absolute;
+  left: 15px;
+  content: ' ';
+  height: 33px;
+  width: 2px;
+  background-color: black;
+}
+.magpie-view-fix-point:before {
+  transform: rotate(45deg);
+}
+.magpie-view-fix-point:after {
+  transform: rotate(-45deg);
+}
+
+/* 
+    PROGRESS BAR
+*/
+.progress-bar-container {
+    float: right;
+    margin: 0 10px 60px 10px;
+}
+
+.clearfix {
+    clear: both;
+}
+
+.progress-bar {
+    border: 1px solid #5187BA;
+    border-radius: 3px;
+    display: inline-block;
+    height: 14px;
+    margin: 5px;
+    width: 60px;
+}
+
+.progress-bar #filled {
+    background-color: #5187BA;
+    display: block;
+    height: 14px;
+}
+
+/*
+    RESPONSE TYPE STYLES
+*/
+
+/* hides the actual input for the input response types */
+input[name=answer] {
+    display: none;
+}
+
+/*
+    forced choice task
+    ---
+    response buttons
+*/
+
+.magpie-response-buttons:hover {
+    background-color: #324D93;
+}
+.magpie-response-buttons {
+    background-color: #5187BA;
+    border: none;
+    border-radius: 2px;
+    color: white;
+    cursor: pointer;
+    display: inline-block;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    margin: 0 5px 20px 5px;
+    outline: none;
+    padding: 5px 10px;
+    text-transform: uppercase;
+}
+
+/* 
+    likert scale rating task
+    ---
+    rating buttons
+*/
+.magpie-response-rating {
+    border: 1px solid #5187BA;
+    border-radius: 50%;
+    color: #5187BA;
+    cursor: pointer;
+    display: inline-block;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    line-height: 20px;
+    letter-spacing: 0.9px;
+    margin: 10px 5px;
+    outline: none;
+    padding: 5px 10px;
+    text-transform: uppercase;
+}
+.magpie-response-rating:first-child {
+    margin-left: 15px;
+}
+.magpie-response-rating:nth-child(-1) {
+    margin-right: 15px;
+}
+.magpie-response-rating:hover {
+    background-color: #324D93;
+    border: 1px solid #324D93;
+    color: white;
+}
+.magpie-response-rating-option {
+    font-size: 15px;
+    display: inline-block;
+    line-height: 17px;
+    margin: 0 10px;
+}
+
+/*
+    sentence seleciton task
+    ---
+    sentence style
+*/
+.magpie-response-sentence {
+    background: rgba(50, 77, 147, 0.05);
+    border-radius: 5px;
+    display: block;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 17px;
+    line-height: 27px;
+    margin: 5px auto;
+    padding: 10px;
+    max-width: 550px;
+}
+.magpie-response-sentence:hover {
+    background: rgba(50, 77, 147, 0.15);
+    cursor: pointer;
+}
+
+/*
+    image seleciton task
+    ---
+    image style
+*/
+.magpie-response-picture img {
+    margin: 20px;
+    height: 100px;
+    width: 100px;
+}
+
+/*
+    key press task
+    ---
+    question style
+*/
+.magpie-response-keypress-header {
+    color: rgba(0, 0, 0, 0.87);
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 20px;
+    line-height: 30px;
+    text-align: center;
+}
+
+/*
+    slider response task
+    ---
+    slider styles
+
+    slider  ---o--- 
+    --- track
+    o  thumb
+ */
+.magpie-response-slider {
+    -webkit-appearance: none;
+    outline: none;
+    margin: 0 25px;
+    padding: 0;
+    width: 300px;
+}
+.magpie-response-slider::-webkit-slider-runnable-track {
+    background: #cbcbcb;
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    cursor: pointer;
+    height: 6px;
+}
+.magpie-response-slider::-moz-range-track {
+    background: #cbcbcb;
+    border-radius: 10px;
+    cursor: pointer;
+    height: 6px;
+}
+.magpie-response-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background: #676767;
+    border: 4px solid #fefefe;
+    border-radius: 50%;
+    box-sizing: content-box;
+    box-shadow: 2px 1px 3px rgba(0, 0, 0, 0.6);
+    height: 16px;
+    margin-top: -9px;
+    margin-left: -2px;
+    width: 16px;
+}
+.magpie-response-slider::-moz-range-thumb {
+    background: #676767;
+    border: 4px solid #fefefe;
+    border-radius: 50%;
+    box-shadow: 2px 1px 3px rgba(0, 0, 0, 0.6);
+    height: 16px;
+    width: 16px;
+}
+.magpie-response-slider:focus::-webkit-slider-thumb {
+    background: orange;
+}
+.magpie-response-slider:focus::-moz-range-thumb {
+    background: orange;
+}
+.magpie-response-slider-option {
+    font-size: 15px;
+    display: inline-block;
+    line-height: 17px;
+    text-align: left;
+    width: 100px;
+}
+.magpie-response-slider-option:first-child {
+    text-align: right;
+    direction: rtl;
+}
+
+/*
+    textbox input task
+    ---
+    textarea styles
+*/
+.magpie-response-text {
+    border: none;
+    border: 2px solid #5187BA;
+    border-radius: 10px;
+    display: block;
+    font-size: 16px;
+    margin: 0 auto;
+    outline: none;
+    padding: 10px 20px;
+}
+
+/*
+    dropdown choice task
+    ---
+    text and dropdown menu styles
+*/
+.magpie-response-dropdown {
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 17px;
+    line-height: 27px;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    margin: 30px auto;
+    max-width: 550px;
+}
+
+/*
+    self-paced reading task
+    ---
+    sentence and underlines
+*/
+.magpie-spr-sentence {
+    display: block;
+    line-height: 40px;
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+}
+.magpie-spr-sentence .spr-word {
+    color: rgba(0, 0, 0, 0.87);
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 17px;
+    display: inline-block;
+    line-height: 27px;
+    margin: 0 4px;
+    position: relative;
+}
+.magpie-spr-sentence .spr-word:after {
+    background: #333;
+    content: "";
+    display: inline-block;
+    height: 2px;
+    visibility: visible;
+    width: 100%;
+
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+}
+.magpie-spr-sentence .spr-word-hidden  {
+    visibility: hidden;
+}
+.magpie-spr-sentence .one-line {
+    margin: 0 0;
+}
+.magpie-spr-sentence .spr-word.no-line:after {
+    visibility: hidden;
+}
+
+/* 
+    POST TEST
+    
+    age
+    education
+    languages
+    comments
+
+*/
+.magpie-post-test-view form {
+    padding: 30px 0;
+    max-width: 550px;
+    margin: 0 auto;
+}
+.magpie-post-test-view .magpie-view-text {
+    display: flex;
+    flex-direction: column;
+    margin: 25px auto;
+    text-align: left;
+}
+.magpie-post-test-view input,
+.magpie-post-test-view select {
+    font-size: 17px;
+    max-width: 200px;
+    width: 200px;
+}
+.magpie-post-test-view label {
+    margin: 0 10px 0 0;
+}
+.magpie-post-test-view label span {
+    font-size: 15px;
+}
+.magpie-post-test-view textarea {
+    border-radius: 5px;
+    border: 1px solid #777;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 17px;
+    padding: 10px 15px;
+    margin: 5px 0 0 0;
+}
+
+/* 
+    THANKS VIEW
+
+    submission loader
+    thanks message
+    warning message
+    follow-the-link (Prolific) message
+
+*/
+
+/* submission loader: thanks to https://projects.lukehaas.me/css-loaders/ */
+.magpie-loader,
+.magpie-loader:before,
+.magpie-loader:after {
+    border-radius: 50%;
+    width: 2.5em;
+    height: 2.5em;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+    -webkit-animation: load7 1.3s infinite ease-in-out;
+    animation: load7 1.3s infinite ease-in-out;
+}
+.magpie-loader {
+    color: #5187BA;
+    font-size: 10px;
+    margin: 40px auto;
+    position: relative;
+    text-indent: -9999em;
+    -webkit-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s;
+}
+.magpie-loader:before,
+.magpie-loader:after {
+    content: '';
+    position: absolute;
+    top: 0;
+}
+.magpie-loader:before {
+    left: -3.5em;
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s;
+}
+.magpie-loader:after {
+    left: 3.5em;
+}
+@-webkit-keyframes load7 {
+    0%,
+    80%,
+    100% {
+        box-shadow: 0 2.5em 0 -1.3em;
+    }
+    40% {
+        box-shadow: 0 2.5em 0 0;
+    }
+}
+@keyframes load7 {
+    0%,
+    80%,
+    100% {
+        box-shadow: 0 2.5em 0 -1.3em;
+    }
+    40% {
+        box-shadow: 0 2.5em 0 0;
+    }
+}
+.magpie-thanks-view {
+    max-width: auto;
+}
+/* submitting the data */
+.magpie-thanks-view .magpie-thanks {
+    margin: 40px auto;
+    text-align: center;
+}
+.magpie-thanks-view .magpie-warning {
+    margin: 40px auto;
+    text-align: center;
+}
+/* prolific confirmation link */
+.magpie-thanks-view .magpie-view-button.prolific-url {
+    color: white;
+    display: block;
+    background: #E74D10;
+    border-radius: 3px;
+    padding: 5px 10px;
+    margin: 8px auto;
+    text-decoration: none;
+    width: 65px;
+}
+.magpie-thanks-view .magpie-view-button.prolific-url:hover {
+    background: #8A2E09;
+}
+/* thank you for taking part in this experiment */
+.magpie-thanks-view strong {
+    border: 2px solid #25BC82;
+    color: #25BC82;
+    display: inline-block;
+    padding: 10px;
+}
+/* DEBUG TABLE */
+.magpie-thanks-view .magpie-debug-results {
+    overflow-x: scroll;
+    text-align: left;
+}
+#magpie-debug-table-container h3 {
+    text-align: center;
+}
+#magpie-debug-table {
+    border-collapse: collapse;
+    font-family: "Lato", "Noto Sans", sans-serif;
+    font-size: 15px;
+    line-height: 20px;
+    width: 100%;
+}
+#magpie-debug-table td,
+#magpie-debug-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+#magpie-debug-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+#magpie-debug-table tr:hover {
+    background-color: #ddd;
+}
+.magpie-thanks-view .magpie-view-button {
+    text-decoration: none;
+    width: 221px;
+}
+#magpie-debug-table th {
+    background-color: #5187BA;
+    color: white;
+    padding: 15px 8px;
+    text-align: left;
+}
+
+/* STYLES USED BY JS */
+.magpie-nodisplay {
+    display: none;
+}
+.magpie-invisible {
+    visibility: hidden;
+}
+
+/* SYLES FOR THE SNACKBAR, currently used by the timer */
+#snackbar {
+  visibility: hidden;
+  left: 30%;
+  right: 30%;
+  background-color: #5187BA;
+  color: white;
+  text-align: center;
+  font-family: "Lato", "Noto Sans", sans-serif;
+  border-radius: 2px;
+  padding: 16px;
+  z-index: 1;
+  position: fixed;
+  top: 30px;
+  font-size: 20px;
+}
+
+#snackbar.show {
+  visibility: visible;
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
+}
+
+#snackbar.fade {
+  visibility: visible;
+  -webkit-animation: fadeout 0.5s;
+  animation: fadeout 0.5s;
+}
+
+#snackbar.hide {
+  visibility: hidden;
+}
+
+@-webkit-keyframes fadein {
+  from {top: 0; opacity: 0;}
+  to {top: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+  from {top: 0; opacity: 0;}
+  to {top: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+  from {top: 30px; opacity: 1;}
+  to {top: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+  from {top: 30px; opacity: 1;}
+  to {top: 0; opacity: 0;}
+}
