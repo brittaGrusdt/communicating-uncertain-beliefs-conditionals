@@ -5,7 +5,7 @@ save_data <- function(data, target_path){
   if(!dir.exists(target_dir)){dir.create(target_dir, recursive=TRUE)
   }
   data %>% write_rds(target_path)
-  print(paste("saved to:", target_path))
+  message(paste("saved to:", target_path))
 }
 
 filter_vars <- function(df_long, vars){

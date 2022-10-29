@@ -3,38 +3,10 @@ library(here)
 library(matrixStats)
 source(here("model", "R", "helpers-tables.R"))
 
-fs = .Platform$file.sep
+FS = .Platform$file.sep
 epsilon = 0.000001
 seed_fitted_tables = "20202020"
 
-test_data <- function(path_to_csv) {
-  data <- read_csv(path_to_csv) %>%
-    mutate(prolific_id = str_trim(str_to_lower(prolific_id))) %>%
-    filter(str_detect(prolific_id, "test-.*") | str_detect(prolific_id, "test "))
-  return(data)
-}
-
-experimental_data <- function(path_to_csv){
-  data <- read_csv(path_to_csv) %>%
-    mutate(prolific_id = str_trim(str_to_lower(prolific_id))) %>%
-    filter(!str_detect(prolific_id, "test.*") & prolific_id != "" &
-             !is.na(prolific_id))
-  return(data)
-}
-
-save_raw_data <- function(data_dir, data_fn, result_dir, result_fn, debug_run=F){
-  path_to_data <- paste(data_dir, data_fn, sep=.Platform$file.sep)
-  if(debug_run){
-    data <- test_data(path_to_data)
-  } else {
-    data <- experimental_data(path_to_data)
-  }
-  
-  path_target <- paste(result_dir, paste(result_fn, "raw.csv", sep="_"), sep=fs)
-  write_excel_csv(data, path = path_target, delim = ",", append=F, col_names=T)
-  print(paste('written raw data to:', path_target))
-  return(data)
-}
 
 tidy_test_exp1 <- function(df){
   dat.test <- df %>% filter(str_detect(trial_name, "multiple_slider")) %>%
@@ -68,7 +40,7 @@ tidy_test_exp2 <- function(df){
              trial_name == "fridge_train") %>%
     dplyr::select(prolific_id, RT, QUD, id, group, response1, response2,
                   trial_name, trial_number) %>%
-    rename(custom_response=response2, response=response1)
+    rename(custom_response = response2, response = response1)
   
   dat.test <- dat.test %>%
     mutate(prolific_id = factor(prolific_id),
@@ -82,8 +54,8 @@ tidy_test_joint <- function(df){
     add_column(custom_response="", utterance="")
   data.production = df %>% filter(str_detect(trial_name, "fridge_")) %>%
     tidy_test_exp2() %>%
-    rename(utterance=response) %>%
-    add_column(question="")
+    rename(utterance = response) %>%
+    add_column(question = "")
   dat.test = bind_rows(data.prior, data.production)
   return(dat.test)
 }
@@ -195,6 +167,7 @@ standardize_color_groups_exp1 <- function(df){
   return(df)
 }
 
+# standardizes selected responses + custom responses as if all were in group1
 standardize_color_groups_exp2 <- function(df){
   df <- df %>%
     mutate(response=
@@ -238,28 +211,6 @@ add_probs <- function(df){
   return(df)
 }
 
-# @arg quest: question which is used to generate the clusters, e.g. 'b'
-cluster_responses <- function(dat, quest){
-  dat.kmeans <- dat %>% filter(question == quest) %>%
-    dplyr::select(prolific_id, id, response) %>% add_column(y=1) %>%
-    group_by(prolific_id, id) %>%
-    unite("rowid", "prolific_id", "id", sep="--") %>%
-    column_to_rownames(var = "rowid")
-  clusters <- kmeans(dat.kmeans, 2)
-  
-  df <- dat.kmeans %>%
-    rownames_to_column(var = "rowid") %>%
-    as_tibble() %>%
-    separate(col="rowid", sep="--", into=c("prolific_id", "id")) %>%
-    mutate(cluster=as.factor(clusters$cluster), id=as.factor(id),
-           prolific_id = as.factor(prolific_id)) %>%
-    dplyr::select(prolific_id, id, cluster)
-  df <- left_join(dat, df) 
-  df <- df %>%
-    mutate(cluster=fct_explicit_na(df$cluster, na_level='not-clustered'))
-  return(df)
-}
-
 # @arg df1 in long-format
 # smooth slider ratings from prior elicitation experiment (exp1)
 add_smoothed_exp1 <- function(df1){
@@ -272,49 +223,55 @@ add_smoothed_exp1 <- function(df1){
   return(df.with_smoothed)
 }
 
-save_prob_tables <- function(df, result_dir, result_fn){
-  # Save all Tables (with smoothed values)
-  tables.all <- df %>% dplyr::select(id, question, prolific_id, r_smooth) %>%
+save_prob_tables <- function(df, result_dir){
+  # Save all tables (with smoothed values)
+  tables_all <- df %>% dplyr::select(id, question, prolific_id, r_smooth) %>%
     group_by(id, prolific_id) %>%
     pivot_wider(names_from = question, values_from = r_smooth) %>%
     add_probs()
-  fn_tables_all <- paste(result_fn, "_tables_smooth.csv", sep="");
-  path_tables_all <- paste(result_dir, fn_tables_all, sep=fs);
-  write.table(tables.all, file=path_tables_all, sep = ",", row.names=FALSE)
-  print(paste('written smoothed probability tables to:', path_tables_all))
+  path_tables_all <- paste(result_dir, "pe_tables_smooth.csv", sep=FS);
+  write.table(tables_all, file=path_tables_all, sep = ",", row.names=FALSE)
+  message(paste('written smoothed probability tables to:', path_tables_all))
   
-  tables.empiric.pids = tables.all %>%
+  # tables from PE-task rounded to two digits: each receives an unique id
+  # (empirical_id); save how many participants chose respective table
+  tables_empiric_pids = tables_all %>%
     dplyr::select("bg", "b", "g", "none", "prolific_id", "id") %>% 
     unite("p_id", c(prolific_id, id)) %>% group_by(bg, b, g, none) %>%
     summarize(p_id=list(p_id), .groups="keep") %>% ungroup() %>% 
-    mutate(bg.round=as.integer(round(bg,2)*100), b.round=as.integer(round(b,2)*100),
-           g.round=as.integer(round(g,2)*100), none.round=as.integer(round(none,2)*100)) %>%
+    mutate(bg.round=as.integer(round(bg, 2) * 100), 
+           b.round=as.integer(round(b, 2) * 100),
+           g.round=as.integer(round(g, 2) * 100), 
+           none.round=as.integer(round(none, 2) * 100)) %>%
     rowid_to_column("empirical_id")
-  save_data(tables.empiric.pids, paste(result_dir, "tables-empiric-pids.rds", sep=fs))
+  save_data(tables_empiric_pids, 
+            paste(result_dir, "tables-empiric-pids.rds", sep=FS))
 }
 
-process_data <- function(data_dir, data_fn, result_dir, result_fn, debug_run, N_trials){
-  dat.anonym <- save_raw_data(data_dir, data_fn, result_dir, result_fn, debug_run)
-  dat.tidy <- tidy_data(dat.anonym, N_trials);
-  # Further process TEST-trial data --------------------------------------------
-  data <- dat.tidy$test
-  df1 <- data %>% filter(str_detect(trial_name, "multiple_slider"))
-  df1 <- add_smoothed_exp1(df1);
-  df1 <- standardize_color_groups_exp1(df1)
-  save_prob_tables(df1, result_dir, result_fn);
-  df2 <- data %>% filter(str_detect(trial_name, "fridge_")) %>%
-    mutate(response=utterance) %>%
-    dplyr::select(-utterance)
-  df2 <- standardize_color_groups_exp2(df2)
-  df2 <- standardize_sentences(df2)
-  df <- bind_rows(df1 %>% rename(response=utterance), df2);
+process_data <- function(path_to_raw_csv, result_dir, N_trials){
+  raw_data = read_csv(path_to_raw_csv)
+  list_tidy_data <- tidy_data(raw_data, N_trials)
   
-  # save processed data -----------------------------------------------------
-  fn_tidy <- paste(result_fn, "_tidy.rds", sep="");
-  path_target <- paste(result_dir, fn_tidy, sep=.Platform$file.sep)
-  dat.tidy$test <- df
-  save_data(dat.tidy, path_target)
-  return(dat.tidy)
+  # Further process TEST-trial data --------------------------------------------
+  test_data <- list_tidy_data$test
+  pe_data <- test_data %>% 
+    filter(str_detect(trial_name, "multiple_slider")) %>% 
+    add_smoothed_exp1() %>% 
+    standardize_color_groups_exp1()
+  
+  save_prob_tables(pe_data, result_dir)
+  uc_data <- test_data %>% filter(str_detect(trial_name, "fridge_")) %>%
+    mutate(response = utterance) %>% dplyr::select(-utterance) %>% 
+    standardize_color_groups_exp2() %>% 
+    mutate(response_non_standardized = response) %>% 
+    standardize_sentences()
+  formatted_test_data <- bind_rows(pe_data %>% rename(response = utterance), 
+                                   uc_data);
+  
+  list_tidy_data$test <- formatted_test_data
+  # save processed data --------------------------------------------------------
+  save_data(list_tidy_data, paste(result_dir, "tidy_data.rds", sep = FS))
+  return(list_tidy_data)
 }
 
 bin_tables = function(tables){
@@ -342,7 +299,7 @@ bin_tables = function(tables){
 # @arg tables.generated: tables uniquely grouped by table_id
 # (before combining with causal nets)
 match_sampled_and_empiric_tables = function(tables.generated, dir_empiric){
-  tables.empiric.pids = readRDS(paste(dir_empiric, "tables-empiric-pids.rds", sep=fs)) %>%
+  tables.empiric.pids = readRDS(paste(dir_empiric, "tables-empiric-pids.rds", sep=FS)) %>%
     rename(AC=bg, `A-C`=b, `-AC`=g, `-A-C`=none,
            AC.round=`bg.round`, `A-C.round`=`b.round`,
            `-AC.round`=`g.round`, `-A-C.round`=`none.round`) %>% 
@@ -373,7 +330,7 @@ match_sampled_and_empiric_tables = function(tables.generated, dir_empiric){
 # adds empirical tables to set of all generated tables (tables.gen)
 add_empirical_tables = function(tables.gen, dir_empiric, save_mapping_to){
   max.table_id = tables.gen$table_id %>% max()
-  tbls.emp = readRDS(paste(dir_empiric, "tables-empiric-pids.rds", sep=fs)) %>%
+  tbls.emp = readRDS(paste(dir_empiric, "tables-empiric-pids.rds", sep=FS)) %>%
     rename(AC=bg, `A-C`=b, `-AC`=g, `-A-C`=none) %>%
     dplyr::select(-ends_with(".round")) %>% 
     rowid_to_column("table_id") %>% group_by(table_id) %>% 
@@ -398,6 +355,7 @@ add_empirical_tables = function(tables.gen, dir_empiric, save_mapping_to){
   return(tbls.joint)
 }
 
+# saves tables to folder @arg dir_empiric
 makeAbstractPriorTables = function(dir_empiric) { 
   dat.model = sampleModelTables()
   tables.model = dat.model$tables
@@ -433,13 +391,13 @@ makeAbstractPriorTables = function(dir_empiric) {
   bns.finite_ll = bns  %>% filter(!is.infinite(ll))
   
   save_data(bns.finite_ll %>% filter(!added),
-            paste(tables.par$target_dir, tables.par$tables_path, sep=fs))
+            paste(tables.par$target_dir, tables.par$tables_path, sep=FS))
   save_data(tables.par,
-            paste(tables.par$target_dir, tables.par$target_params, sep=fs))
+            paste(tables.par$target_dir, tables.par$target_params, sep=FS))
   
   save_to = paste(str_split(tables.par$tables_path, "\\.")[[1]][[1]], 
                   "with-empirical.rds", sep="-")
-  save_data(bns.finite_ll, paste(tables.par$target_dir, save_to, sep=fs))
+  save_data(bns.finite_ll, paste(tables.par$target_dir, save_to, sep=FS))
   
   # unique tables marginal P(tables) computed across cns with logsumexp
   tables = group_map(bns %>% group_by(table_id), function(table, table_id){
@@ -464,14 +422,14 @@ join_model_behavioral_averages = function(tables_fn, dir_empiric,
   fn.model = paste("model-avg-predictions", fn_data, sep="")
   fn.model = ifelse(chunked, paste(fn.model, "-chunked.csv", sep=""),
                     paste(fn.model, ".csv", sep=""))
-  message(paste('read model results from ', target_dir, fs, fn.model, sep=""))
-  model.avg = read_csv(paste(target_dir, fn.model, sep=fs)) %>%
+  message(paste('read model results from ', target_dir, FS, fn.model, sep=""))
+  model.avg = read_csv(paste(target_dir, fn.model, sep=FS)) %>%
     filter(stimulus != "ind2") %>% rename(model=p)
   
   fn.behav = ifelse(chunked, "behavioral-avg-task2-chunked.csv",
                     "behavioral-avg-task2.csv")
-  message(paste('read behavioral results from ', dir_empiric, fs, fn.behav, sep=""))
-  behav.avg = read_csv(paste(dir_empiric, fn.behav, sep=fs)) %>%
+  message(paste('read behavioral results from ', dir_empiric, FS, fn.behav, sep=""))
+  behav.avg = read_csv(paste(dir_empiric, fn.behav, sep=FS)) %>%
     rename(stimulus = id, behavioral=ratio) %>% filter(stimulus != "ind2")
   
   data.joint = left_join(
@@ -485,16 +443,6 @@ join_model_behavioral_averages = function(tables_fn, dir_empiric,
 rep_each <- function(x, times) {
   times <- rep(times, length.out = length(x))
   rep(x, times = times)
-}
-
-ll_table_across_cns = function(bns){
-  tables = group_map(bns %>% group_by(table_id), function(table, table_id){
-    table_id=table_id$table_id
-    ll=logSumExp(table$ll)
-    df = table %>% add_column(table_id=(!! table_id))
-    return(df[1,] %>% mutate(ll=(!!ll)))
-  }) %>% bind_rows() %>% group_by(table_id) %>% mutate(cn="", best.cn=TRUE)
-  return(tables)
 }
 
 get_controlled_factors = function(df){
@@ -517,6 +465,78 @@ get_controlled_factors = function(df){
            relation_type = as_factor(relation_type)
     )
   return(data)
+}
+
+# Quality of the data -----------------------------------------------------
+# for each participant take mean response of all other participants for each
+# stimulus and question, then compute squared difference between participant's
+# response and mean of all others -> 4 values, one for each question (for each participant)
+# to get one value per participant sum these up (for each participant)
+distancesResponses = function(df.prior, save_as = NA){
+  df = df.prior %>% 
+    dplyr::select(prolific_id, id, response, question) %>%
+    unite(col = "id_quest", "id", "question", sep="__", remove=FALSE)
+  
+  distances <- tibble()
+  for(proband in df.prior$prolific_id %>% unique()) {
+    message(proband)
+    res = df %>% filter(prolific_id == proband) %>% ungroup()
+    for(stimulus in df$id %>% unique()) {
+      dat <- df %>% filter(id == (!! stimulus));
+      res_proband = res %>%
+        filter(str_detect(id_quest, paste(stimulus, ".*", sep=""))) %>%
+        dplyr::select(id_quest, response) %>% rename(r_proband = response) %>%
+        add_column(comparator = proband)
+      dat.others = anti_join(dat, res_proband %>% rename(prolific_id=comparator),
+                             by=c("prolific_id", "id_quest"))
+      
+      means.others = dat.others %>% group_by(id_quest) %>% 
+        summarize(mean.others=mean(response), .groups="drop_last")
+      
+      diffs = left_join(means.others, res_proband, by=c("id_quest")) %>%
+        mutate(sq_diff = (r_proband - mean.others)**2)
+      distances = bind_rows(distances, diffs)
+    }
+  }
+  dist.sums <- distances %>%
+    separate("id_quest", into=c("id", "question"), sep="__") %>%
+    group_by(id, comparator) %>%
+    summarize(sum_sq_diffs = sum(sq_diff), .groups="drop_last") %>% 
+    mutate(mean.id=mean(sum_sq_diffs), sd.id=sd(sum_sq_diffs)) %>%
+    group_by(comparator) %>% 
+    mutate(mean.comparator=mean(sum_sq_diffs)) %>%
+    ungroup()
+  
+  if(!is.na(save_as)){
+    message(paste('save data to:', save_as))
+    saveRDS(dist.sums, save_as)
+  }
+  return(dist.sums)
+}
+
+
+formatPriorElicitationData = function(test.prior, smoothed=TRUE){
+  df.prior_responses = test.prior %>%
+    dplyr::select(-custom_response, -QUD, -trial_number, -trial_name) 
+  if(smoothed){
+    df.prior_responses = df.prior_responses %>% dplyr::select(-r_orig) %>% 
+      pivot_wider(names_from = "question", values_from = "r_smooth")
+  } else {
+    df.prior_responses = df.prior_responses %>% dplyr::select(-r_smooth) %>%
+      pivot_wider(names_from = "question", values_from = "r_orig")
+  }
+  df.prior_responses = df.prior_responses %>% add_probs()
+  
+  prior_responses = df.prior_responses %>%
+    pivot_longer(cols=c("b", "g", "bg", "none", starts_with("p_")),
+                 names_to="prob", values_to="val") %>%
+    translate_probs_to_utts()
+  
+  exp1.human = prior_responses %>% dplyr::select(-group, -n) %>%
+    rename(human_exp1=val, question=prob) %>% 
+    mutate(question = case_when(!question %in% c("bg", "b", "g", "none") ~ NA_character_,
+                                TRUE ~ question))
+  return(exp1.human)
 }
 
 

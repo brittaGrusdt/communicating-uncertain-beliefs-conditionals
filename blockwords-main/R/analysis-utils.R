@@ -8,95 +8,19 @@ library(scales)
 library(truncnorm)
 library(greta)
 source(here("R", "utils.R"))
-source(here("R", "utils-exp1.R"))
 source(here("R", "utils-exp2.R"))
 source(here("R", "Dirichlet-fits.R"))
 
+FS = .Platform$file.sep
 # General Data ------------------------------------------------------------
 IDS.dep=c("if1_uh", "if1_u-Lh", "if1_hh", "if1_lh",
           "if2_ul", "if2_u-Ll", "if2_hl", "if2_ll");
 IDS.ind = c("independent_ll", "independent_hh", "independent_hl",
             "independent_ul", "independent_uh"); #, "ind2");
-IDS = c(IDS.dep, IDS.ind)
-
-CNS.dep = c("A implies C", "A implies -C", "C implies A", "C implies -A");
-ID_CNS = rbind(expand.grid(id=IDS.ind, cn=c("A || C"), stringsAsFactors=FALSE),
-               expand.grid(id=IDS.dep, cn=c("A implies C", "C implies A"),
-                           stringsAsFactors=FALSE));
-questions.train = c("ry", "r", "y", "none")
-labels.train = c(ry="Red and Yellow", r="Red and ¬Yellow",
-                 y="¬Red and Yellow", none="¬Red and ¬Yellow")
 
 questions.test = c("bg", "b", "g", "none")
-labels.test = c(bg="Blue and Green", b="Blue and ¬Green",
-                g="¬Blue and Green", none="¬Blue and ¬Green")
-
-train.edges = tribble(
-  ~id, ~block, ~condition, ~dir,
-  "ssw0", "yellow", "uncertain", "vert",
-  "ssw0", "red", "low", "horiz",
-  "ssw1", "red", "uncertain", "vert",
-  "ssw1", "yellow", "low", "horiz",
-  "uncertain0", "red", "uncertain", "horiz",
-  "uncertain0", "yellow", "uncertain", "vert",
-  "uncertain1", "red", "uncertainH", "horiz",
-  "uncertain1", "yellow", "low", "horiz",
-  "uncertain2", "red", "high", "horiz",
-  "uncertain2", "yellow", "uncertain", "vert",
-  "uncertain3", "red", "low", "vert",
-  "uncertain3", "yellow", "high", "vert",
-  "ac0", "red", "high", "horiz",
-  "ac1", "yellow", "high", "vert",
-  "ac2", "red", "uncertainH", "horiz",
-  "ac3", "yellow", "uncertain", "vert",
-  "ind0", "yellow", "low", "vert",
-  "ind1", "yellow", "uncertain", "vert",
-  "ind2", "green", "high", "vert",
-  "ssw0", "yellow", "uncertainH", "vert",
-  "ssw0", "red", "low", "horiz",
-  "ssw1", "yellow", "low", "horiz",
-  "ssw1", "red", "uncertain", "vert"
-);
-train.ramp = tribble(
-  ~id, ~block, ~condition, ~dir,
-  "ac0", "yellow", "high", "horiz",
-  "ac1", "red", "low", "vert",
-  "ac2", "yellow", "uncertain", "vert",
-  "ac3", "red", "high", "horiz",
-  "ind0", "red", "uncertainH", "vert",
-  "ind1", "red", "high", "vert",
-  "ind2", "blue", "uncertain", "horiz"
-)
-
-prior.dir_ramp = tribble(~relation, ~condition, ~dir, ~event,
-                         "if2", "hl", "vert", "p_blue",
-                         "if2", "ll", "horiz", "p_blue",
-                         "if2", "ul", "vert", "p_blue",
-                         "if2", "u-Ll", "vert", "p_blue",
-                         "independent", "hh", "vert", "p_blue",
-                         "independent", "hl", "vert", "p_green",
-                         "independent", "ll", "horiz", "p_green",
-                         "independent", "uh", "vert", "p_green",
-                         "independent", "ul", "horiz", "p_green",
-                         "if1", "hh", "vert", "g_given_b",
-                         "if1", "lh", "vert", "g_given_b",
-                         "if1", "uh", "vert", "g_given_b",
-                         "if1", "u-Lh", "vert", "g_given_b") %>%
-  add_column(uncertain_by="ramp")
-
-prior.dir_edges = tribble(~relation, ~condition, ~dir, ~event,
-                          "independent", "hh", "vert", "p_green",
-                          "independent", "hl", "horiz", "p_blue",
-                          "independent", "ll", "vert", "p_blue",
-                          "independent", "uh", "horiz", "p_blue",
-                          "independent", "ul", "vert", "p_blue",
-                          "if2", "u-Ll", "horiz", "g_given_nb",
-                          "if2", "ul", "horiz", "g_given_nb",
-                          "if2", "hl", "horiz", "g_given_nb",
-                          "if2", "ll", "horiz", "g_given_nb") %>%
-  add_column(uncertain_by = "edge")
-
-prior_uncertainties = bind_rows(prior.dir_ramp, prior.dir_edges)
+labels.test = c(bg = "Blue and Green", b = "Blue and ¬Green",
+                g =" ¬Blue and Green", none = "¬Blue and ¬Green")
 
 # Other -------------------------------------------------------------------
 # ordered by informativity
@@ -120,72 +44,73 @@ standardized.lit = c(standardized.sentences$only_b, standardized.sentences$only_
 standardized.ifs = levels.responses[str_detect(levels.responses, "if")]
 
 # Experimental Data -------------------------------------------------------
-load_exp_data = function(exp.name, use_filtered){
+load_formatted_data = function(result_dir){
   data = list()
-  result_dir = here("data", "prolific", exp.name)
-  if(use_filtered) {
-    result_dir = paste(result_dir, "filtered_data", sep=fs)
-  }
-  m = ifelse(use_filtered, "filtered data loaded", "non-filtered data loaded")
-  message(paste(m, "from", result_dir))
-  data$plot_dir = paste(result_dir, "plots", sep=fs)
+  message(paste("Data loaded from", result_dir))
+  data$plot_dir = paste(result_dir, "plots", sep = FS)
   if(!dir.exists(data$plot_dir)){dir.create(data$plot_dir, recursive=TRUE)}
   data$result_dir = result_dir
+  
   # Experimental Data
-  data$production = readRDS(paste(result_dir, "human-exp2.rds", sep=fs));
-  data$prior.smooth = readRDS(paste(result_dir, "human-exp1-smoothed.rds", sep=fs))
-  data$prior.orig = readRDS(paste(result_dir, "human-exp1-orig.rds", sep=fs))
-  data$joint.smooth = readRDS(paste(result_dir, "human-exp1-smoothed-exp2.rds", sep=fs))
-  data$joint.orig = readRDS(paste(result_dir, "human-exp1-orig-exp2.rds", sep=fs))
-  data$info = readRDS(paste(result_dir, "participants-info.rds", sep=fs))
+  data$production = readRDS(paste(result_dir, "human-exp2.rds", sep=FS));
+  data$prior.smooth = readRDS(paste(result_dir, "human-exp1-smoothed.rds", sep=FS))
+  data$prior.orig = readRDS(paste(result_dir, "human-exp1-orig.rds", sep=FS))
+  data$joint.smooth = readRDS(paste(result_dir, "human-exp1-smoothed-exp2.rds", sep=FS))
+  data$joint.orig = readRDS(paste(result_dir, "human-exp1-orig-exp2.rds", sep=FS))
+  data$info = readRDS(paste(result_dir, "participants-info.rds", sep=FS))
   return(data)
 }
 
 # Filter Data ---------------------------------------------------------------
-exclude_data = function(exp.name, ids){
-  data = load_exp_data(exp.name, use_filtered=FALSE)
+exclude_data = function(result_dir, ids){
+  data = load_formatted_data(result_dir)
   anti_by = c("prolific_id", "id")
   exp2 = anti_join(data$production, ids, by=anti_by)
   exp1_smoothed = anti_join(data$prior.smooth, ids, by=anti_by)
   exp1_orig = anti_join(data$prior.orig, ids, by=anti_by)
   exp1_smoothed_exp2 = anti_join(data$joint.smooth, ids, by=anti_by)
   exp1_orig_exp2 = anti_join(data$joint.orig, ids, by=anti_by)
-  return(list(exp2=exp2, exp1_sm=exp1_smoothed, exp1_orig=exp1_orig,
-              exp1_sm_exp2=exp1_smoothed_exp2, exp1_orig_exp2=exp1_orig_exp2))
+  return(list(exp2 = exp2, 
+              exp1_sm = exp1_smoothed, 
+              exp1_orig = exp1_orig,
+              exp1_sm_exp2 = exp1_smoothed_exp2, 
+              exp1_orig_exp2 = exp1_orig_exp2))
 }
 
-# according to criteria filter out and save all filtered data separetely
+# according to criteria filter out and save all cleaned data separately
 # @arg out.by_comments: tibble with cols: 'prolific_id', 'id'
-filter_data = function(data.dir, exp.name, out.by_comments=NA, out.by_quality=NA) {
-  filtered_dir <- paste(data.dir, "filtered_data", sep=fs)
-  if(!dir.exists(filtered_dir)){dir.create(filtered_dir, recursive=TRUE);
-  }
-  data <- readRDS(paste(data.dir, fs, exp.name, "_tidy.rds", sep=""));
-  data.production = readRDS(paste(data.dir, "human-exp2.rds", sep=fs));
-  data.joint.orig = readRDS(paste(data.dir, "human-exp1-orig-exp2.rds", sep=fs))
+filter_data = function(data.dir, out.by_comments=NA, out.by_quality=NA) {
+  # create folder for cleaned data
+  filtered_dir = here("data", "formatted-cleaned")
+  if(!dir.exists(filtered_dir)) dir.create(filtered_dir)
+
+  data <- readRDS(here(data.dir, "tidy_data.rds"))
+  data.production = readRDS(paste(data.dir, "human-exp2.rds", sep = FS));
+  data.joint.orig = readRDS(paste(data.dir, "human-exp1-orig-exp2.rds", sep=FS))
   data.train.sliders = data$train.slider_choice
   
-  df.all = data.production %>% dplyr::select(prolific_id, id)
+  df.subj_trials = data.production %>% dplyr::select(prolific_id, id)
   # exclude all trials of a participant
   # 1. attention check questions in beginning concerning block icons
   df.att = data$train.attention %>% filter(response != expected) 
   df.out = tibble()
   if(nrow(df.att) != 0){
     participants.att = df.att$prolific_id %>% unique()
-    df.att = df.all %>% filter(prolific_id %in% participants.att) %>%
+    df.att = df.subj_trials %>% filter(prolific_id %in% participants.att) %>%
       dplyr::select(prolific_id, id) %>% distinct()
     df.out = bind_rows(df.out, df.att)
     message(paste(length(participants.att),
                   'participants completely excluded due to attention checks'))
   }
   # 2. color vision questions
-  dat.col = data$color %>% filter(response != expected) %>%
+  dat.col = data$color %>% 
+    filter(response != expected) %>%
     dplyr::select(prolific_id, id) %>%
     group_by(prolific_id) %>%
-    mutate(n_wrong=n()) %>% filter(n_wrong >= 1)
+    mutate(n_wrong = n()) %>% filter(n_wrong >= 1)
   if(nrow(dat.col) != 0){
     participants.col = dat.col$prolific_id %>% unique()
-    df.col = df.all %>% filter(prolific_id %in% participants.col) %>%
+    df.col = df.subj_trials %>% filter(prolific_id %in% participants.col) %>%
       dplyr::select(prolific_id, id) %>% distinct()
     df.out = bind_rows(df.out, df.col)
     message(paste(length(participants.col),
@@ -195,98 +120,112 @@ filter_data = function(data.dir, exp.name, out.by_comments=NA, out.by_quality=NA
   dat.sliders = data.train.sliders %>%
     mutate(correct = response == expected, .groups="drop_last") %>%
     group_by(prolific_id) %>%
-    summarize(ratio_correct=sum(correct)/n(), .groups="drop_last") %>%
+    summarize(ratio_correct = sum(correct) / n(), .groups="drop_last") %>%
     filter(ratio_correct < 0.5)
   if(nrow(dat.sliders) != 0){
     participants.sc = dat.sliders$prolific_id %>% unique()
-    df.sc = df.all %>% filter(prolific_id %in% participants.sc) %>%
-      dplyr::select(prolific_id, id) %>% distinct()
+    df.sc = df.subj_trials %>% 
+      filter(prolific_id %in% participants.sc) %>%
+      dplyr::select(prolific_id, id) %>% 
+      distinct()
     df.out = bind_rows(df.out, df.sc)
-    message(paste(length(participants.sc),
-                  'participant(s) completely excluded due to less than 50% of slider-choice trials correct.'))
-  } 
-  # single trials
-  # 4. utterance task 2 is rated with 0 in task 1
+    m = 'participant(s) completely excluded due to less than 50% of slider-choice trials correct'
+    message(paste(length(participants.sc), m))
+  }
+  # 4. single trials: utterance task 2 is rated with 0 in task 1
   df.utt = data.joint.orig %>%
     filter(!is.na(human_exp2) & human_exp1 == 0) %>%
-    dplyr::select(prolific_id, id) %>% distinct()
-  message(paste(nrow(df.utt), 'trial(s) excluded due to 0 probability in task 1, but chosen in task 2'))
+    dplyr::select(prolific_id, id) %>%
+    distinct()
+  m = 'trial(s) excluded due to 0 probability in task 1, but chosen in task 2'
+  message(paste(nrow(df.utt), m))
   df.out = bind_rows(df.out, df.utt)
   
   # 5. due to comments
   if(!is.na(out.by_comments)){
-    out.comments = read_csv(paste(data.dir, out.by_comments, sep=fs)) %>%
-      dplyr::select(prolific_id, id)
+    out.comments = read_csv(out.by_comments) %>% dplyr::select(prolific_id, id)
     message(paste(length(out.comments$prolific_id %>% unique),
                   'participants excluded due to comments'))
     df.out = bind_rows(df.out, out.comments)
   }
   # 6. Quality
   if(!is.na(out.by_quality)) {
-    out.qual = read_csv(paste(data.dir, "out_by_quality.csv", sep=fs)) %>%
-      dplyr::select(prolific_id, id)
+    out.qual = read_csv(out.by_quality) %>% dplyr::select(prolific_id, id)
     message(paste(length(out.qual$prolific_id %>% unique),
                   'participant(s) excluded due to large quality value.'))
     df.out = bind_rows(df.out, out.qual)
   }
   
-  ratio_ex = round(nrow(df.out)/nrow(df.all), 2) * 100
+  ratio_ex = round(nrow(df.out) / nrow(df.subj_trials), 2) * 100
   message(paste(ratio_ex, '% of all trials excluded in total.', sep=""))
-  write_csv(df.out, paste(filtered_dir, "ids_excluded.csv", sep=fs))
+  write_csv(df.out, paste(filtered_dir, "ids_excluded.csv", sep = FS))
   
   # save filtered data
-  df.filtered = exclude_data(exp.name, df.out)
+  df.filtered = exclude_data(data.dir, df.out)
   save_data(df.filtered$exp2,
-            paste(filtered_dir, "human-exp2.rds", sep=fs));
+            paste(filtered_dir, "human-exp2.rds", sep=FS));
   save_data(df.filtered$exp1_sm,
-            paste(filtered_dir, "human-exp1-smoothed.rds", sep=fs))
+            paste(filtered_dir, "human-exp1-smoothed.rds", sep=FS))
   save_data(df.filtered$exp1_orig,
-            paste(filtered_dir, "human-exp1-orig.rds", sep=fs))
+            paste(filtered_dir, "human-exp1-orig.rds", sep=FS))
   save_data(df.filtered$exp1_sm_exp2,
-            paste(filtered_dir, "human-exp1-smoothed-exp2.rds", sep=fs))
+            paste(filtered_dir, "human-exp1-smoothed-exp2.rds", sep=FS))
   save_data(df.filtered$exp1_orig_exp2,
-            paste(filtered_dir, "human-exp1-orig-exp2.rds", sep=fs))
+            paste(filtered_dir, "human-exp1-orig-exp2.rds", sep=FS))
   
-  out.all_trials = df.out %>% group_by(prolific_id) %>% mutate(n=n()) %>%
-    filter(n==14) %>% dplyr::select(prolific_id) %>% distinct()
+  out.all_trials = df.out %>% 
+    group_by(prolific_id) %>% 
+    mutate(n=n()) %>%
+    filter(n == 14) %>% 
+    dplyr::select(prolific_id) %>% 
+    distinct()
   
   df.info = anti_join(data$info, out.all_trials, by=c("prolific_id"))
-  save_data(df.info, paste(filtered_dir, "participants-info.rds", sep=fs))
+  save_data(df.info, paste(filtered_dir, "participants-info.rds", sep = FS))
   
   # also save with all data (and with empiric-ids)
   df1 = data$test %>% filter(str_detect(trial_name, "multiple_slider"))
   df1 = anti_join(df1, df.out, by=c("prolific_id", "id")) %>%
-    dplyr::select(-response) %>% rename(response=r_orig)
-  df1 = add_smoothed_exp1(df1);
-  df1 = standardize_color_groups_exp1(df1)
-  save_prob_tables(df1, filtered_dir, exp.name);
+    dplyr::select(-response) %>% 
+    rename(response = r_orig) %>%
+    add_smoothed_exp1() %>% 
+    standardize_color_groups_exp1()
+  save_prob_tables(df1, filtered_dir);
   
   # average productions
   df.avg.exp2 = task2_avg_per_stimulus(filtered_dir)
-  write_csv(df.avg.exp2, paste(filtered_dir, "behavioral-avg-task2.csv", sep=fs))
+  write_csv(df.avg.exp2, 
+            paste(filtered_dir, "behavioral-avg-task2.csv", sep = FS))
   # also with chunked utterances
   df2.chunked = df.avg.exp2 %>% chunk_utterances()
-  df2.chunked.avg = df2.chunked %>% group_by(id, utterance) %>% 
+  df2.chunked.avg = df2.chunked %>%
+    group_by(id, utterance) %>% 
     summarize(count=sum(count), ratio=sum(ratio), .groups="drop_last")
-  write_csv(df2.chunked.avg, paste(filtered_dir, "behavioral-avg-task2-chunked.csv", sep=fs))
+  write_csv(df2.chunked.avg, 
+            paste(filtered_dir, "behavioral-avg-task2-chunked.csv", sep = FS))
   
   # fit dirichlet distributions to filtered data
-  N_participants = df1 %>% group_by(id) %>% distinct_at(vars(c(prolific_id))) %>%
-    summarize(n=n())
+  N_participants = df1 %>% 
+    group_by(id) %>% 
+    distinct_at(vars(c(prolific_id))) %>%
+    summarize(n = n())
   # single distribution for all data
-  params.fit.single = run_fit_dirichlet(filtered_dir, exp.name, per_stimulus=F) %>%
-    add_column(p_cn=1, cn="all") %>% mutate(id="all")
-  N_all = N_participants %>% summarize(n=sum(n)) %>%
-    add_column(cn="all", id="all")
-  res.goodness = compute_goodness_dirichlets(params.fit.single, filtered_dir,
+  params.fit.single = run_fit_dirichlet(filtered_dir, per_stimulus=F) %>%
+    add_column(p_cn=1, cn="all") %>% 
+    mutate(id = "all")
+  N_all = N_participants %>% summarize(n=sum(n)) %>% add_column(cn="all", id="all")
+  res.goodness = compute_goodness_dirichlets(params.fit.single, 
+                                             filtered_dir,
                                              N_all, each=F)
   res.goodness %>% distinct_at(vars(c(stimulus_id)), .keep_all = T)
   p = plot_goodness_dirichlets(res.goodness, params.fit.single, filtered_dir)
   
   # single distribution for data from each stimulus
-  df.params.fit = run_fit_dirichlet(filtered_dir, exp.name, per_stimulus=T) %>%
-    add_column(p_cn=1/13) %>% mutate(cn=id)
-  # df.params.fit = read_csv("./data/prolific/blockwords/filtered_data/params-fitted-dirichlet.csv") %>% add_column(p_cn=1/13) %>% mutate(cn=id)
+  df.params.fit = run_fit_dirichlet(filtered_dir, per_stimulus=T) %>%
+    add_column(p_cn = 1/13) %>% mutate(cn = id)
+  # df.params.fit = read_csv(paste(filtered_dir, "params-fitted-dirichlet.csv", 
+  #                                sep=FS))  %>%
+  #   add_column(p_cn = 1/13) %>% mutate(cn = id)
   tables.dirichlet = makeDirichletTables(df.params.fit, filtered_dir)
   message("compute goodness of dirichlet fits ...")
   res.goodness = compute_goodness_dirichlets(df.params.fit, filtered_dir,
@@ -295,7 +234,7 @@ filter_data = function(data.dir, exp.name, out.by_comments=NA, out.by_quality=NA
   p = plot_goodness_dirichlets(res.goodness, df.params.fit, filtered_dir)
   
   # generate abstract state prior tables with filtered data
-  tables.model = makeAbstractPriorTables(dir_empiric=filtered_dir)
+  tables.model = makeAbstractPriorTables(dir_empiric = filtered_dir)
 
   return(df.filtered)
 }

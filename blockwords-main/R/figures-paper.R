@@ -9,7 +9,8 @@ library(boot)
 source(here("R", "analysis-utils.R"))
 
 # Data --------------------------------------------------------------------
-DATA = load_exp_data("blockwords", use_filtered=TRUE)
+result_dir = here("data", "formatted-cleaned")
+DATA = load_formatted_data(result_dir)
 
 tables.smooth = DATA$joint.smooth %>%
   dplyr::select(-human_exp2) %>% distinct() %>% 
@@ -93,8 +94,8 @@ p.uc_pe_uncertain = df.uc.unc %>%
   scale_x_discrete(
     labels=c('conjunction'='conjunction',
              'conditional'='conditional',
-             'might + literal' = parse(text=TeX(r'(might $\\phi$\\$\neg\\phi$)')),
-             'literal' = parse(text=TeX(r'($\\phi$\\$\neg\\phi$)')))
+             'might + literal' = parse(text=TeX(r'(might $\phi$/$\neg\phi$)')),
+             'literal' = parse(text=TeX(r'($\phi$/$\neg\phi$)')))
   )
 ggsave(paste(DATA$plot_dir, "fig2-new.png", sep=fs), p.uc_pe_uncertain,
        width=5, height=2.5)
@@ -155,8 +156,8 @@ p.scatter = ggscatter(
              #'IF'= parse(text = TeX("$\\phi\\rightarrow\\psi$")),
              'AND' = "conjunction",
              'IF' = "conditional",
-             'might+literal' = parse(text=TeX(r'(might $\\phi$\\$\neg\\phi$)')),
-             'literal' = parse(text=TeX(r'($\\phi$\\$\neg\\phi$)'))),
+             'might+literal' = parse(text=TeX(r'(might $\phi$/$\neg\phi$)')),
+             'literal' = parse(text=TeX(r'($\phi$/$\neg\phi$)'))),
     guide=guide_legend(title.position="left", nrow=1)
   ) +
   facet_wrap(~predictor, scales="free") +
@@ -223,7 +224,7 @@ y_obs = map_dfr(stimuli, function(stim){
   dat = data.uc %>% dplyr::select(prolific_id, id, utt_type, utterance) %>% 
     filter(id == !!stim) 
   n=1000
-  bootstrapped_means = boot(data=dat, statistic=sample_means, R=n)
+  bootstrapped_means = boot(data = dat, statistic = sample_means, R = n)
   bootstraps = bootstrapped_means$t %>% as_tibble() %>%
     rename_all(~bootstrapped_means$t0 %>% colnames()) %>% 
     rowid_to_column("idx_sample") %>%
@@ -235,25 +236,25 @@ y_obs = map_dfr(stimuli, function(stim){
     group_by(utt) %>%
     arrange(utt, rating) %>% # order from small to large within groups
     dplyr::select(-idx_sample) %>% 
-    add_column(rowid=c(rep(seq(1,n), n.utts))) %>% 
+    add_column(rowid = c(rep(seq(1, n), n.utts))) %>% 
     filter(rowid == lower | rowid == upper) %>% 
     arrange(utt, rowid) %>%
-    add_column(ci=rep(c("ci.low", "ci.up"), n.utts)) %>% 
+    add_column(ci = rep(c("ci.low", "ci.up"), n.utts)) %>% 
     dplyr::select(utt, rating, ci) %>%
-    pivot_wider(names_from="ci", values_from="rating")
+    pivot_wider(names_from = "ci", values_from = "rating")
   
   means.obs = bootstrapped_means$t0 %>% as_tibble() %>%
-    pivot_longer(cols=everything(), names_to="utt", values_to="p") %>%
-    add_column(stimulus=stim)
+    pivot_longer(cols = everything(), names_to = "utt", values_to = "p") %>%
+    add_column(stimulus = stim)
   res <- left_join(boot_ci, means.obs, by="utt") %>% 
-    rename(utterance=utt)
+    rename(utterance = utt)
   return(res)
 })
 
 avg.models = bind_rows(avg.abstract, avg.dirichlet)
 results.joint = bind_rows(y_obs %>% add_column(predictor="behavioral"),
                           avg.models) %>%
-  mutate(utterance=as.factor(utterance), predictor=as.factor(predictor)) 
+  mutate(utterance = as.factor(utterance), predictor = as.factor(predictor)) 
   
 plots.bars = list()
 for(id in stimuli) {
@@ -312,8 +313,8 @@ for(id in stimuli){
 #                   "independent_hh")
 selected_stim = stimuli
 df.utterance = readRDS(here("data", "prolific", "blockwords", "filtered_data",
-                              "human-exp2.rds")) %>%
-  rename(utterance=response) %>%
+                            "human-exp2.rds")) %>%
+  rename(utterance = response) %>%
   group_by(id) %>%
   dplyr::count(utterance) %>%
   arrange(desc(n))
@@ -321,13 +322,13 @@ df.utterance = readRDS(here("data", "prolific", "blockwords", "filtered_data",
 data.utts = group_map(df.utterance, function(df, id){
   lens = rle(df$n)$lengths
   ranks = seq(1:length(lens))
-  df$rank = rep_each(ranks, times=lens)
-  return(df %>% add_column(id=id$id))
-}) %>% bind_rows() %>% rename(occurrence=n)
+  df$rank = rep_each(ranks, times = lens)
+  return(df %>% add_column(id = id$id))
+}) %>% bind_rows() %>% rename(occurrence = n)
 
 # adding utterances less often used as 'other'
 data.utt_other = data.utts %>%
-  filter(rank>=4 & id %in% selected_stim) %>%
+  filter(rank >= 4 & id %in% selected_stim) %>%
   group_by(id) %>% 
   mutate(occurrence = sum(occurrence),
          utterance = "other",
@@ -336,15 +337,15 @@ data.utt_other = data.utts %>%
   distinct()
 
 data.utterance = data.utts %>%
-  filter(rank<=3 & id %in% selected_stim) %>%
+  filter(rank <= 3 & id %in% selected_stim) %>%
   full_join(data.utt_other) %>% # J: add 'other' to utterances
-  mutate(id = factor(id, levels=selected_stim), 
-         rank = factor(rank, levels=seq(1,4))) %>% 
+  mutate(id = factor(id, levels = selected_stim), 
+         rank = factor(rank, levels = seq(1, 4))) %>% 
   arrange(id, rank)
 
 utt.levels = data.utterance$utterance %>% unique 
 data.utterance = data.utterance %>% 
-  mutate(utterance=
+  mutate(utterance = 
            factor(utterance,
                   levels=c(utt.levels[utt.levels!="other"], "other"))
   )
@@ -395,39 +396,49 @@ p.single_bars = ggpubr::ggarrange(
     nrow = 1, ncol = length(selected_stim)#,
     # font.label = list(size = 22), align="h"
   ) + theme(plot.margin = unit(c(0, 0, -3, 0), "cm"))
-ggsave(paste(DATA$plot_dir, "single-bars.png", sep=fs), p.single_bars,
-       width=24, height=2)
+ggsave(paste(DATA$plot_dir, "single-bars.png", sep = FS), p.single_bars,
+       width = 24, height = 2)
 
 p.stimuli <- ggpubr::ggarrange(
-  plotlist=plots.stimuli[selected_stim], 
-  nrow=1, ncol=length(selected_stim),
-  font.label = list(size = 22), align="h"
+  plotlist = plots.stimuli[selected_stim], 
+  nrow = 1, 
+  ncol = length(selected_stim),
+  font.label = list(size = 22), 
+  align="h"
 ) + theme(plot.margin = unit(c(-1, 0, -.4, 0), "cm")) 
-ggsave(paste(DATA$plot_dir, "stimuli.png", sep=fs), p.stimuli, width=24, height=2)
+ggsave(paste(DATA$plot_dir, "stimuli.png", sep = FS), p.stimuli, width = 24, 
+       height = 2)
 
 p.sliders <- ggpubr::ggarrange(
-  plotlist=plots.sliders[selected_stim], 
-  nrow=1, ncol=length(selected_stim),
-  font.label = list(size = 22), align="h"
+  plotlist = plots.sliders[selected_stim], 
+  nrow = 1, ncol = length(selected_stim),
+  font.label = list(size = 22),
+  align = "h"
 ) + theme(plot.margin = unit(c(0, 0, -0.4, 0), "cm")) 
-ggsave(paste(DATA$plot_dir, "sliders.png", sep=fs), p.sliders, width=24, height=2)
+ggsave(paste(DATA$plot_dir, "sliders.png", sep = FS), p.sliders, width = 24, 
+       height = 2)
 
 p.bars <- ggpubr::ggarrange(
-  plotlist=plots.bars[selected_stim], 
+  plotlist = plots.bars[selected_stim], 
   common.legend = T, legend="bottom",
-  font.label = list(size = 22), align="h",
-  nrow=1, ncol=length(selected_stim)
+  font.label = list(size = 22), 
+  align = "h",
+  nrow = 1, 
+  ncol = length(selected_stim)
 ) + theme(plot.margin = unit(c(0, 0, -0.1, 0), "cm")) 
-ggsave(paste(DATA$plot_dir, "bars.png", sep=fs), p.bars, width=24, height=3)
+ggsave(paste(DATA$plot_dir, "bars.png", sep = FS), p.bars, width = 24,
+       height = 3)
 
 p.all <- ggpubr::ggarrange(
   p.single_bars, p.stimuli, p.sliders, p.bars,
-  nrow = 4, ncol = 1,
+  nrow = 4, 
+  ncol = 1, 
   labels = c("", "A", "B", "C"),
-  font.label = list(size = 16), align="h",
+  font.label = list(size = 16), 
+  align="h",
   heights = c(1, 2, 2, 2.5)
 )
-ggsave(paste(DATA$plot_dir, "stimuli-all.png", sep=fs), p.all,
-       width=28, height=9)
+ggsave(paste(DATA$plot_dir, "stimuli-all.png", sep = FS), p.all, width = 28, 
+       height = 9)
 
 

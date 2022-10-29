@@ -4,7 +4,8 @@ library(here)
 library(MCMCpack)
 library(rwebppl)
 source(here("R", "utils.R"))
-source(here("R", "utils-exp1.R"))
+
+FS = .Platform$file.sep
 
 # Fit dirichlet distributions ---------------------------------------------
 get_optimal_alphas <- function(table_data, st_id) {
@@ -147,8 +148,8 @@ ll_dirichlet = function(tables, params){
 }
 
 # fit single dirichlet distribution for each stimulus (or all) ----------------
-run_fit_dirichlet = function(result_dir, exp_name, per_stimulus){
-  path_smoothed_tables <- paste(result_dir, fs, exp_name, "_tables_smooth.csv", sep="")
+run_fit_dirichlet = function(result_dir, per_stimulus){
+  path_smoothed_tables <- paste(result_dir, "pe_tables_smooth.csv", sep = FS)
   table_data <- read_csv(path_smoothed_tables) %>% arrange(id)
   message(paste('load data for fitting dirichlets from', path_smoothed_tables))
   
@@ -262,61 +263,6 @@ plot_goodness_dirichlets = function(res.goodness, params.fit, dir_empiric){
   ggsave(save_as, p, height=6)
   print(paste("saved plot to", save_as))
   return(p)
-}
-
-## latent mixture with Dirichlets
-run_fit_dirichlet_latent_mixture = function(tables_smoothed){
-  table_data <- tables_smoothed %>% arrange(id) %>% 
-    dplyr::select(id, bg, b, g, none) %>% group_by(id)
-  
-  posteriorSamples = 
-    webppl(program_file = here("model", "fit-latent-mixture-dirichlets.wppl"),
-           data = list(tables=table_data), data_var = "data")
-  
-  samples = posteriorSamples %>% as_tibble() %>% 
-    mutate(Parameter = as.character(Parameter)) %>%
-    group_by(Parameter)
-  
-  pp = samples %>% summarize(ev=mean(value), .groups="keep") %>% 
-    pivot_wider(names_from="Parameter", values_from="ev")
-  
-  fits = pp %>%
-    pivot_longer(cols=everything(), names_to="key", values_to="val") %>% 
-    separate(key, into=c("id", "param"), sep="\\.") %>%
-    group_by(id) %>% 
-    pivot_wider(names_from="param", values_from="val")
-  
-    # save
-  write_csv(fits, "./model/data/fits-latent-mix-dirichlet-prior.csv")
-  message('saved fitted params to ./model/data/' )
-  return(fits)
-}
-
-# this is almost identical to outcome of optim! (as expected)
-run_fit_dirichlet_latent_mixture_single = function(tables_smoothed){
-  table_data <- tables_smoothed %>% arrange(id) %>% 
-    dplyr::select(id, bg, b, g, none) %>% group_by(id)
-  
-  fits = map_dfr(table_data$id %>% unique, function(id){
-    tbls.stim = table_data %>% filter(id==(!! id))
-    posteriorSamples = 
-      webppl(program_file = here("model", "fit-latent-mixture-dirichlets-single.wppl"),
-             data = list(tables=tbls.stim), data_var = "data")
-    
-    samples = posteriorSamples %>% as_tibble() %>% 
-      mutate(Parameter = as.character(Parameter)) %>%
-      group_by(Parameter)
-    
-    pp = samples %>% summarize(ev=mean(value), .groups="keep") %>% 
-      pivot_wider(names_from="Parameter", values_from="ev") %>% 
-      add_column(id=(!! id))
-  
-    return(pp)
-  })
-  # save
-  write_csv(fits, "./model/data/fits-latent-mix-dirichlet-prior-each-stimulus.csv")
-  message('saved fitted params to ./model/data/' )
-  return(fits)
 }
 
 sample_fitted_dirichlet = function(params.fitted, N){

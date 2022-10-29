@@ -1,7 +1,6 @@
 library(here)
 source(here("R", "analysis-utils.R"))
-DATA.all = load_exp_data("blockwords", use_filtered=T)
-
+DATA.all = load_formatted_data(here("data", "formatted-cleaned"))
 
 # UC-task -----------------------------------------------------------------
 behav.uc_task.all = read_csv(
