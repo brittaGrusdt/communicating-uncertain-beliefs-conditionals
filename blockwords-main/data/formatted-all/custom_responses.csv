@@ -1,0 +1,82 @@
+prolific_id,id,custom_response,response_non_standardized
+5ee454ad40c72e152991826e,if1_hh,both the blue and the green blocks will fall.,both blocks fall
+5e1f0f5628b7b62348f7ba3e,if2_hl,both blocks might fall,the blue block and the green block fall
+5e1f0f5628b7b62348f7ba3e,if1_uh,both blocks might fall,both blocks fall
+5e1f0f5628b7b62348f7ba3e,independent_ul,the blue box falls,the blue block might fall
+5e1f0f5628b7b62348f7ba3e,independent_hl,no blocks fall,neither block falls
+5e1f0f5628b7b62348f7ba3e,if1_u-Lh,green block falls,the green block falls
+5e1f0f5628b7b62348f7ba3e,independent_uh,the green block does not fall,the green block falls
+5e1f0f5628b7b62348f7ba3e,if1_lh,the green block falls,the green block might fall
+5f29eff59714081a3594a331,if1_hh,both blocks fall,the blue block and the green block fall
+5f29eff59714081a3594a331,independent_ul,the blue block does not fall and the green block falls,the green block does not fall and the blue block falls
+5f29eff59714081a3594a331,if2_ll,both blocks fall,the blue block and the green block fall
+5f29eff59714081a3594a331,if1_u-Lh,the green block does not fall and the blue block falls,the blue block falls and the green block does not fall
+5f29eff59714081a3594a331,independent_ll,the green blocks falls and the blue block does not fall,the blue block does not fall and the green block falls
+5ffa01eb7dfb43387a868196,independent_uh,the blue block might not fall but the green block does.,both blocks fall
+5ffa01eb7dfb43387a868196,independent_ul,both blocks might fall.,the blue block might fall
+5cfea2427b91e70001423ffb,independent_ul,both blocks might fall,both blocks fall
+5f51928b9cd7773e67c1f84a,independent_ul,both blocks might fall,the blue block might fall
+562b02d19e2b900005006dce,if2_u-Ll,if the blue block falls the green block falls,the blue block might fall
+562b02d19e2b900005006dce,independent_ul,and the blue block might fall,the green block does not fall
+562b02d19e2b900005006dce,independent_uh,and the green block falls,the blue block might fall
+5fd9f6e4f0fc1a54e3e8e4fb,if2_hl,if the blue block falls the green block might fall,if the blue block falls the green block falls as well
+5fd9f6e4f0fc1a54e3e8e4fb,independent_ll,the blue block does not fall but the green block might,the blue block does not fall but the green block falls
+5eebd430d1798f1761ac4103,independent_ll,the green box might fall,neither block falls
+5a1491827542890001aa7abf,if2_hl,both could fall,both blocks fall
+5a1491827542890001aa7abf,if2_u-Ll,both blocks might fall,both blocks fall
+5e5615d0581a0c60e87bd8e3,independent_ul,both blocks might fall,the blue block might fall
+5e5615d0581a0c60e87bd8e3,independent_hl,blue block falls but green might not.,the blue block falls and the green block does not fall
+5e5615d0581a0c60e87bd8e3,if2_ul,both blocks might not fall,neither block falls
+5e5615d0581a0c60e87bd8e3,if2_hl,blue falls green might not,both blocks fall
+5f6a309c9fbd7a0a1a014543,if2_u-Ll,the blue block falls and the green block might fall,the blue block falls and the green block falls as well
+5f6a309c9fbd7a0a1a014543,independent_ul,the green block and blue block might not fall,the green block might fall
+5f6a309c9fbd7a0a1a014543,if2_ll,the blue block falls and the green box might fall,the blue block falls and the green block falls as well
+5f6a309c9fbd7a0a1a014543,independent_ll,the green block falls but the blue block does not fall,the green block falls and the blue block does not fall
+5f6a309c9fbd7a0a1a014543,if2_ul,the blue block falls and the the green block might fall,the blue block falls but the green block does not fall
+5efca11992bb0d06c28f4bd3,if2_ll,the blue block might fall and then the green block will fall,the green block might fall
+5a2d62ae5dba1200014b0362,if1_hh,"the blue falls, the green might as well",the blue block falls and the green block falls as well
+5a2d62ae5dba1200014b0362,if2_ul,"green falls, green might",the blue block falls but the green block does not
+5a2d62ae5dba1200014b0362,independent_ul,"green might, green will not",neither block falls
+5a2d62ae5dba1200014b0362,if2_ll,both fall,both blocks fall
+5a2d62ae5dba1200014b0362,independent_hh,"green falls, blue might",the green block falls and the blue block falls as well
+5a2d62ae5dba1200014b0362,if1_uh,both might fall,the blue block and the green block fall
+5a2d62ae5dba1200014b0362,independent_hl,"blue falls, green won't",the blue block falls
+5a2d62ae5dba1200014b0362,if2_hl,both fall,both blocks fall
+5a2d62ae5dba1200014b0362,independent_uh,"green might, green won't",the blue block might fall
+5a2d62ae5dba1200014b0362,if1_lh,neither fall,neither block falls
+5a2d62ae5dba1200014b0362,if2_u-Ll,"blue will fall, green might",the green block might fall
+5a2d62ae5dba1200014b0362,independent_ll,neither falls,neither block falls
+5f5d3a0514f72258dedea6dc,if1_hh,the blue block falls and the green block might,the green block might fall
+5e2c9acdcd89c82c3a1321ae,independent_uh,the green block falls and the blue block might fall,both blocks fall
+5e2c9acdcd89c82c3a1321ae,independent_ul,the blue block will probably fall and the green block will probably not fall,the blue block falls but the green block does not fall
+5e2c9acdcd89c82c3a1321ae,if2_ul,"the blue block might fall. if the blue block falls, the green block might fall. if the blue block does not fall, the green block does not fall.",the blue block might fall
+5e2c9acdcd89c82c3a1321ae,independent_ll,the blue block does not fall and the green block might fall,neither block falls
+5f85750a256d25010d68e377,if2_ll,"if the blue block falls, the green block might fall",if the blue block falls the green block falls as well
+5f85750a256d25010d68e377,independent_uh,the green block falls and the blue block might fall,the blue block might fall
+5f85750a256d25010d68e377,independent_hl,the blue block falls and the green block might fall,the green block might fall
+5f85750a256d25010d68e377,if2_hl,the blue block falls and the green block might fall,the blue block falls
+5f85750a256d25010d68e377,independent_ul,both blocks might fall,the blue block might fall
+5f85750a256d25010d68e377,if2_u-Ll,the blue block falls and the green block might fall,the blue block falls
+5fbe5321e3dc2e000927aeca,if2_u-Ll,the blue block does not fall but the green block might,the green block does not fall but the blue block falls
+5fbe5321e3dc2e000927aeca,if1_uh,both blocks might fall,the blue block might fall
+5fc365bbef90dd2e757dfd79,if2_ll,if the blue block falls it'll cause the green block to fall too,the green block falls if the blue block falls
+5fc365bbef90dd2e757dfd79,if1_uh,if the blue block falls it'll cause the green block to fall too,the green block falls if the blue block falls
+5fc365bbef90dd2e757dfd79,independent_ul,the green block falls while the blue block doesn't,the green block falls and the blue block does not fall
+5fc365bbef90dd2e757dfd79,if2_ul,if the blue block falls it'll cause the green block to fall too,the green block falls if the blue block falls
+5fc365bbef90dd2e757dfd79,independent_hl,the blue block falls but the green block doesn't fall,the blue block falls and the green block does not fall
+5eeb08b82348801fe2843b92,independent_ul,the blue block falls but the green block might not,the blue block falls but the green block does not
+5eeb08b82348801fe2843b92,independent_uh,the green block falls but the blue block might not,the green block falls but the blue block does not
+5f48cd6061235238d144db2c,independent_uh,the blue block might fall but the green block will fall,the green block falls but the blue block does not
+5f48cd6061235238d144db2c,independent_ul,the blue block might fall but the green block won't fall,the blue block might fall
+5f48cd6061235238d144db2c,if2_ll,the blue block might fall which will make the green block fall.,the blue block might fall
+5f48cd6061235238d144db2c,if1_uh,the blue block might fall which will make the green block fall.,the blue block might fall
+5f15bb958f68106c2868863a,independent_ul,the blue block might fall but the green block won't fall.,the blue block might fall
+5f15bb958f68106c2868863a,if2_u-Ll,both the green block and the blue block might not fall.,the green block might not fall
+5f15bb958f68106c2868863a,independent_uh,both blocks might fall.,the green block might not fall
+5f15bb958f68106c2868863a,if2_hl,both blocks might fall.,both blocks fall
+5e5eb757a234251ddb9ab872,if2_u-Ll,the blue block falls but the green block might not,the blue block falls but the green block does not
+5e5eb757a234251ddb9ab872,if2_ul,the blue block falls but the green block might not,the blue block falls but the green block does not fall
+5e5eb757a234251ddb9ab872,independent_hh,the green block falls and the blue block might not,the green block falls and the blue block does not fall
+5aea85749d82560001bde2bc,independent_hl,blue falls and green might,the blue block falls and the green block falls
+5aea85749d82560001bde2bc,if2_ll,all things are roughly equal,both blocks fall
+5f05056acc8d327f2948bbc0,independent_ul,"the blue block might fall, the green block does not fall.",the blue block might fall
