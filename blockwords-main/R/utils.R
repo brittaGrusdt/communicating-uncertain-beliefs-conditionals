@@ -39,7 +39,7 @@ tidy_test_exp2 <- function(df){
     filter(startsWith(trial_name, "fridge_view") |
              trial_name == "fridge_train") %>%
     dplyr::select(prolific_id, RT, QUD, id, group, response1, response2,
-                  trial_name, trial_number) %>%
+                  trial_name, trial_number, cost.uc) %>%
     rename(custom_response = response2, response = response1)
   
   dat.test <- dat.test %>%
@@ -97,8 +97,9 @@ tidy_data <- function(data, N_trials){
                   QUD, response,
                   expected, response1, response2, response3, response4,
                   id, trial_name, trial_number, group,
-                  timeSpent, RT,
-                  education, comments, gender, age)
+                  timeSpent, RT, cost,
+                  education, comments, gender, age) %>% 
+    rename(cost.uc = cost)
   # always use the same abbreviation
   df <- df %>% mutate(question1 = case_when(question1 == "gb" ~ "bg",
                                             question1 == "yr" ~ "ry",
@@ -257,7 +258,8 @@ process_data <- function(path_to_raw_csv, result_dir, N_trials){
   pe_data <- test_data %>% 
     filter(str_detect(trial_name, "multiple_slider")) %>% 
     add_smoothed_exp1() %>% 
-    standardize_color_groups_exp1()
+    standardize_color_groups_exp1() %>% 
+    dplyr::select(-cost.uc)
   
   save_prob_tables(pe_data, result_dir)
   uc_data <- test_data %>% filter(str_detect(trial_name, "fridge_")) %>%
@@ -517,7 +519,8 @@ distancesResponses = function(df.prior, save_as = NA){
 
 formatPriorElicitationData = function(test.prior, smoothed=TRUE){
   df.prior_responses = test.prior %>%
-    dplyr::select(-custom_response, -QUD, -trial_number, -trial_name) 
+    dplyr::select(-custom_response, -QUD, -trial_number, -trial_name, 
+                  -response, -response_non_standardized, -cost.uc)
   if(smoothed){
     df.prior_responses = df.prior_responses %>% dplyr::select(-r_orig) %>% 
       pivot_wider(names_from = "question", values_from = "r_smooth")
@@ -528,14 +531,16 @@ formatPriorElicitationData = function(test.prior, smoothed=TRUE){
   df.prior_responses = df.prior_responses %>% add_probs()
   
   prior_responses = df.prior_responses %>%
-    pivot_longer(cols=c("b", "g", "bg", "none", starts_with("p_")),
-                 names_to="prob", values_to="val") %>%
+    pivot_longer(cols = c("b", "g", "bg", "none", starts_with("p_")),
+                 names_to = "prob", values_to = "val") %>%
     translate_probs_to_utts()
   
   exp1.human = prior_responses %>% dplyr::select(-group, -n) %>%
-    rename(human_exp1=val, question=prob) %>% 
-    mutate(question = case_when(!question %in% c("bg", "b", "g", "none") ~ NA_character_,
-                                TRUE ~ question))
+    rename(human_exp1 = val, question = prob) %>% 
+    mutate(question = 
+             case_when(!question %in% c("bg", "b", "g", "none") ~ NA_character_,
+                       TRUE ~ question)) %>% 
+    rename(response = human_exp1)
   return(exp1.human)
 }
 

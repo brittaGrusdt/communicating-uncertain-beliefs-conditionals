@@ -181,6 +181,7 @@ filter_data = function(data_dir, target_dir, out.by_comments=NA) {
     distinct()
   
   df.info = anti_join(data$info, out.all_trials, by=c("prolific_id"))
+  df.filtered$info = df.info
   save_data(df.info, paste(target_dir, "participants-info.rds", sep = FS))
   
   # also save with all data (and with empiric-ids)
