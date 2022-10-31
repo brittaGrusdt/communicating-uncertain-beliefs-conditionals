@@ -1,0 +1,72 @@
+id;custom_response;response_non_standardized;n;annotation
+if1_hh;both the blue and the green blocks will fall.;both blocks fall;1;both wording
+if1_hh;both blocks fall;the blue block and the green block fall;2;both wording
+ind_ul;the blue block does not fall and the green block falls;the green block does not fall and the blue block falls;1;conjunction opposite
+if2_ll;both blocks fall;the blue block and the green block fall;2;both wording
+if1_u-Lh;the green block does not fall and the blue block falls;the blue block falls and the green block does not fall;1;conjunction order
+ind_ll;the green blocks falls and the blue block does not fall;the blue block does not fall and the green block falls;1;conjunction order
+ind_uh;the blue block might not fall but the green block does.;both blocks fall;1;both -> conjunction + might
+ind_ul;both blocks might fall.;the blue block might fall;3;might blue -> might both
+ind_ul;both blocks might fall;both blocks fall;6;both -> might both
+ind_ul;both blocks might fall;the blue block might fall;6;might blue -> might both
+if2_u-Ll;if the blue block falls the green block falls;the blue block might fall;1;might blue -> conditional
+ind_ul;and the blue block might fall;the green block does not fall;1;not green -> + conjunction might
+ind_uh;and the green block falls;the blue block might fall;1;might blue -> + conjunction green
+if2_hl;if the blue block falls the green block might fall;if the blue block falls the green block falls as well;1;conditional -> might consequent
+ind_ll;the blue block does not fall but the green block might;the blue block does not fall but the green block falls;2;conjunction -> conjunction + might
+ind_ll;the green box might fall;neither block falls;1;neither -> might green
+if2_hl;both could fall;both blocks fall;1;both -> might both
+if2_u-Ll;both blocks might fall;both blocks fall;6;both -> might both
+ind_ul;both blocks might fall;the blue block might fall;6;might blue -> might both
+ind_hl;blue block falls but green might not.;the blue block falls and the green block does not fall;1;conjunction -> conjunction + might
+if2_ul;both blocks might not fall;neither block falls;1;neither -> both might not
+if2_hl;blue falls green might not;both blocks fall;1;both -> conjunction + might
+if2_u-Ll;the blue block falls and the green block might fall;the blue block falls and the green block falls as well;4;both -> conjunction + might
+ind_ul;the green block and blue block might not fall;the green block might fall;1;might green -> might not both?
+if2_ll;the blue block falls and the green box might fall;the blue block falls and the green block falls as well;1;both -> conjunction + might
+ind_ll;the green block falls but the blue block does not fall;the green block falls and the blue block does not fall;1;and -> but
+if2_ul;the blue block falls and the the green block might fall;the blue block falls but the green block does not fall;1;conjunction -> conjunction + might
+if2_ll;the blue block might fall and then the green block will fall;the green block might fall;1;might green -> conjunction might opposite?
+if1_hh;the blue falls, the green might as well;the blue block falls and the green block falls as well;1;both -> conjunction + might
+if2_ul;green falls, green might;the blue block falls but the green block does not;1;conjunction -> conjunction + might ?
+ind_ul;green might, green will not;neither block falls;1;neither -> conjunction + might ?
+if2_ll;both fall;both blocks fall;2;both wording
+ind_hh;green falls, blue might;the green block falls and the blue block falls as well;1;both -> conjunction + might
+if1_uh;both might fall;the blue block and the green block fall;1;both -> might both
+ind_hl;blue falls, green won't;the blue block falls;1;blue -> conjunction
+if2_hl;both fall;both blocks fall;2;both wording
+ind_uh;green might, green won't;the blue block might fall;1;might blue -> conjunction might ?
+if1_lh;neither fall;neither block falls;1;neither wording
+if2_u-Ll;blue will fall, green might;the green block might fall;1;might green -> conjunction + might
+ind_ll;neither falls;neither block falls;1;neither wording
+if1_hh;the blue block falls and the green block might;the green block might fall;1;might green -> conjunction + might
+ind_uh;the green block falls and the blue block might fall;both blocks fall;2;both -> conjunction + might
+ind_ul;the blue block will probably fall and the green block will probably not fall;the blue block falls but the green block does not fall;1;conjunction -> + probably
+if2_ul;the blue block might fall. if the blue block falls, the green block might fall. if the blue block does not fall, the green block does not fall.;the blue block might fall;1;might blue -> more specific + conditional
+ind_ll;the blue block does not fall and the green block might fall;neither block falls;1;neither -> conjunction + might
+if2_ll;if the blue block falls, the green block might fall;if the blue block falls the green block falls as well;1;conditional -> might consequent 
+ind_uh;the green block falls and the blue block might fall;the blue block might fall;2;might blue -> + conjunction might
+ind_hl;the blue block falls and the green block might fall;the green block might fall;4;might green -> + conjunction might
+if2_hl;the blue block falls and the green block might fall;the blue block falls;4;blue -> conjunction might
+ind_ul;both blocks might fall;the blue block might fall;6;might blue -> might both
+if2_u-Ll;the blue block falls and the green block might fall;the blue block falls;4;blue -> conjunction might
+if2_u-Ll;the blue block does not fall but the green block might;the green block does not fall but the blue block falls;2;conjunction -> conjunction + might (opposite)
+if1_uh;both blocks might fall;the blue block might fall;6;might blue -> might both
+if2_ll;if the blue block falls it'll cause the green block to fall too;the green block falls if the blue block falls;3;conditional (centered if) -> cause
+if1_uh;if the blue block falls it'll cause the green block to fall too;the green block falls if the blue block falls;3;conditional (centered if) -> cause
+ind_ul;the green block falls while the blue block doesn't;the green block falls and the blue block does not fall;1;and -> while
+if2_ul;if the blue block falls it'll cause the green block to fall too;the green block falls if the blue block falls;3;conditional (centered if) -> cause
+ind_hl;the blue block falls but the green block doesn't fall;the blue block falls and the green block does not fall;1;and -> but
+ind_ul;the blue block falls but the green block might not;the blue block falls but the green block does not;3;conjunction -> conjunction + might
+ind_uh;the green block falls but the blue block might not;the green block falls but the blue block does not;1;conjunction -> conjunction + might
+ind_ul;the blue block might fall but the green block won't fall;the blue block might fall;1;might blue -> conjunction might
+if2_ll;the blue block might fall which will make the green block fall.;the blue block might fall;2;might blue -> make green fall
+if1_uh;the blue block might fall which will make the green block fall.;the blue block might fall;2;might blue -> make green fall
+ind_ul;the blue block might fall but the green block won't fall.;the blue block might fall;1;might blue -> + conjunction green
+if2_u-Ll;both the green block and the blue block might not fall.;the green block might not fall;1;might not green -> might not both
+ind_uh;both blocks might fall.;the green block might not fall;3;might not green -> might both
+if2_hl;both blocks might fall.;both blocks fall;3;both -> might both
+if2_u-Ll;the blue block falls but the green block might not;the blue block falls but the green block does not;3;conjunction -> conjunction + might
+if2_ul;the blue block falls but the green block might not;the blue block falls but the green block does not fall;3;conjunction -> conjunction + might
+ind_hh;the green block falls and the blue block might not;the green block falls and the blue block does not fall;1;conjunction -> conjunction + might
+ind_ul;the blue block might fall, the green block does not fall.;the blue block might fall;1;might blue -> + conjunction green

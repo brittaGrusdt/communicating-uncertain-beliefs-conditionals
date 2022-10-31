@@ -41,7 +41,7 @@ df.out = out.comments %>% dplyr::select(prolific_id) %>%
   unnest(c(id)) %>%
   group_by(prolific_id)
 
-# write_csv(df.out, here("data", "out_by_comments.csv"))
+write_csv(df.out, here("data", "out_by_comments.csv"))
 
 
 # 4. Save data in different formats ---------------------------------------
@@ -53,9 +53,8 @@ save_data(exp1.human.orig, paste(result_dir, "human-exp1-orig.rds", sep = FS))
 save_data(exp1.human.smooth, paste(result_dir, "human-exp1-smoothed.rds", sep=FS))
 
 # ### UC-Task data ###
-test.production = data$test %>% filter(str_detect(trial_name, "fridge_"))
+test.production = data$test %>% filter(str_detect(trial_name, "fridge_view"))
 exp2.human = test.production %>% 
-  filter(id != "ind2") %>% # Test Trial
   dplyr::select(prolific_id, id, response, RT, custom_response, 
                 response_non_standardized, cost.uc) %>%
   add_column(human_exp2 = 1)

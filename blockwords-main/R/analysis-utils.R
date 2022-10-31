@@ -62,20 +62,62 @@ load_formatted_data = function(result_dir){
 }
 
 # Filter Data ---------------------------------------------------------------
-exclude_data = function(result_dir, ids){
+exclude_test_data_and_save = function(result_dir, target_dir, df.ids){
   data = load_formatted_data(result_dir)
   anti_by = c("prolific_id", "id")
-  exp2 = anti_join(data$production, ids, by=anti_by)
-  exp1_smoothed = anti_join(data$prior.smooth, ids, by=anti_by)
-  exp1_orig = anti_join(data$prior.orig, ids, by=anti_by)
-  exp1_smoothed_exp2 = anti_join(data$joint.smooth, ids, by=anti_by)
-  exp1_orig_exp2 = anti_join(data$joint.orig, ids, by=anti_by)
+  
+  exp2 = anti_join(data$production, df.ids, by=anti_by)
+  save_data(exp2,paste(target_dir, "human-exp2.rds", sep=FS));
+  
+  exp1_smoothed = anti_join(data$prior.smooth, df.ids, by=anti_by)
+  save_data(exp1_smoothed, paste(target_dir, "human-exp1-smoothed.rds", sep=FS))
+  
+  exp1_orig = anti_join(data$prior.orig, df.ids, by=anti_by)
+  save_data(exp1_orig,paste(target_dir, "human-exp1-orig.rds", sep=FS))
+  
+  exp1_smoothed_exp2 = anti_join(data$joint.smooth, df.ids, by=anti_by)
+  save_data(exp1_smoothed_exp2, paste(target_dir, "human-exp1-smoothed-exp2.rds", sep=FS))
+  
+  exp1_orig_exp2 = anti_join(data$joint.orig, df.ids, by=anti_by)
+  save_data(exp1_orig_exp2, paste(target_dir, "human-exp1-orig-exp2.rds", sep=FS))
+  
+  out.all_trials = df.ids %>% group_by(prolific_id) %>% mutate(n = n()) %>%
+    filter(n == 13) %>% dplyr::select(prolific_id) %>% distinct()
+  df.info = anti_join(data$info, out.all_trials, by=c("prolific_id"))
+  save_data(df.info, paste(target_dir, "participants-info.rds", sep = FS))
+
   return(list(exp2 = exp2, 
               exp1_sm = exp1_smoothed, 
               exp1_orig = exp1_orig,
               exp1_sm_exp2 = exp1_smoothed_exp2, 
-              exp1_orig_exp2 = exp1_orig_exp2))
+              exp1_orig_exp2 = exp1_orig_exp2,
+              info = df.info))
 }
+
+
+exclude_train_data_and_save = function(data_all, target_dir, df.out){
+  anti_by = c("prolific_id")
+  # only filter out data from participants from whom all data is excluded
+  df.ids = df.out %>% group_by(prolific_id) %>% dplyr::count() %>% 
+    filter(n == 13) %>% dplyr::select(prolific_id)
+  df.slider_choice = anti_join(data_all$train.slider_choice, df.ids, by=anti_by)
+  save_data(df.slider_choice, paste(target_dir, "train-slider-choice.rds", sep=FS));
+  
+  df.attention = anti_join(data_all$train.attention, df.ids, by=anti_by)
+  save_data(df.attention, paste(target_dir, "train-attention.rds", sep=FS))
+  
+  df.smooth = anti_join(data_all$train.smooth, df.ids, by=anti_by)
+  save_data(df.smooth, paste(target_dir, "train-probs-smooth.rds", sep=FS))
+  
+  df.orig = anti_join(data_all$train.orig, df.ids, by=anti_by)
+  save_data(df.orig, paste(target_dir, "train-probs-orig.rds", sep=FS))
+  
+  return(list(slider_choice = df.slider_choice,
+              attention = df.attention, 
+              probs_smooth = df.smooth,
+              probs_orig = df.orig))
+}
+
 
 # according to criteria filter out and save all cleaned data separately
 # @arg out.by_comments: tibble with cols: 'prolific_id', 'id'
@@ -158,33 +200,17 @@ filter_data = function(data_dir, target_dir, out.by_comments=NA) {
     add_column(id = rep(list(trials), nrow(out.quality))) %>%
     unnest(c(id)) %>% group_by(prolific_id) %>%
     filter(id != "ind2") %>% dplyr::select(-mean.comparator)
-  df.out = bind_rows(df.out, df.quality)
+  df.out = bind_rows(df.out, df.quality) %>% distinct()
   
   # save data
   ratio_ex = round(nrow(df.out) / nrow(df.subj_trials), 3) * 100
   message(paste(ratio_ex, '% of all trials excluded in total.', sep=""))
   write_csv(df.out, paste(target_dir, "ids_excluded.csv", sep = FS))
   
-  df.filtered = exclude_data(data_dir, df.out)
-  # save filtered data in different formats
-  save_data(df.filtered$exp2,paste(target_dir, "human-exp2.rds", sep=FS));
-  save_data(df.filtered$exp1_sm, paste(target_dir, "human-exp1-smoothed.rds", sep=FS))
-  save_data(df.filtered$exp1_orig,paste(target_dir, "human-exp1-orig.rds", sep=FS))
-  save_data(df.filtered$exp1_sm_exp2, paste(target_dir, "human-exp1-smoothed-exp2.rds", sep=FS))
-  save_data(df.filtered$exp1_orig_exp2, paste(target_dir, "human-exp1-orig-exp2.rds", sep=FS))
+  df_test.filtered = exclude_test_data_and_save(data_dir, target_dir, df.out)
+  df_train.filtered = exclude_train_data_and_save(data, target_dir, df.out)
   
-  out.all_trials = df.out %>% 
-    group_by(prolific_id) %>% 
-    mutate(n=n()) %>%
-    filter(n == 14) %>% 
-    dplyr::select(prolific_id) %>% 
-    distinct()
-  
-  df.info = anti_join(data$info, out.all_trials, by=c("prolific_id"))
-  df.filtered$info = df.info
-  save_data(df.info, paste(target_dir, "participants-info.rds", sep = FS))
-  
-  # also save with all data (and with empiric-ids)
+  # also save prob tables with empiric-ids
   df1 = data$test %>% filter(str_detect(trial_name, "multiple_slider"))
   df1 = anti_join(df1, df.out, by=c("prolific_id", "id")) %>%
     dplyr::select(-response) %>% 
@@ -205,7 +231,7 @@ filter_data = function(data_dir, target_dir, out.by_comments=NA) {
   write_csv(df2.chunked.avg, 
             paste(target_dir, "behavioral-avg-task2-chunked.csv", sep = FS))
   
-  return(df.filtered)
+  return(df_test.filtered)
 }
 
 process_and_save_data_for_model = function(cleaned_dir){

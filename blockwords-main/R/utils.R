@@ -36,8 +36,7 @@ tidy_test_exp1 <- function(df){
 
 tidy_test_exp2 <- function(df){
   dat.test <- df %>%
-    filter(startsWith(trial_name, "fridge_view") |
-             trial_name == "fridge_train") %>%
+    filter(startsWith(trial_name, "fridge_view")) %>%
     dplyr::select(prolific_id, RT, QUD, id, group, response1, response2,
                   trial_name, trial_number, cost.uc) %>%
     rename(custom_response = response2, response = response1)
@@ -52,7 +51,8 @@ tidy_test_joint <- function(df){
   data.prior = df %>% filter(str_detect(trial_name, "multiple_slider")) %>%
     tidy_test_exp1() %>%
     add_column(custom_response="", utterance="")
-  data.production = df %>% filter(str_detect(trial_name, "fridge_")) %>%
+  # do not save example fridge trial (name=fridge_train)
+  data.production = df %>% filter(str_detect(trial_name, "fridge_view")) %>%
     tidy_test_exp2() %>%
     rename(utterance = response) %>%
     add_column(question = "")
@@ -262,7 +262,7 @@ process_data <- function(path_to_raw_csv, result_dir, N_trials){
     dplyr::select(-cost.uc)
   
   save_prob_tables(pe_data, result_dir)
-  uc_data <- test_data %>% filter(str_detect(trial_name, "fridge_")) %>%
+  uc_data <- test_data %>% filter(str_detect(trial_name, "fridge_view")) %>%
     mutate(response = utterance) %>% dplyr::select(-utterance) %>% 
     standardize_color_groups_exp2() %>% 
     mutate(response_non_standardized = response) %>% 
