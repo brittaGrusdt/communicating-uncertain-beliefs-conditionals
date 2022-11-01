@@ -50,8 +50,7 @@ avg.abstract = read_csv(
   ) %>% dplyr::select(-best.utt) %>% add_column(predictor="abstract state prior")
 
 # behavioral utterance choice data (all, not only ratios)
-data = readRDS(here("data", "prolific", "blockwords", "filtered_data",
-                    "human-exp1-smoothed-exp2.rds")) %>%
+data = readRDS(paste(result_dir, "human-exp1-smoothed-exp2.rds", sep = FS)) %>%
   get_controlled_factors()
 
 data.uc = data %>% filter(human_exp2 == 1 & id!="ind2") %>% 
@@ -97,6 +96,7 @@ p.uc_pe_uncertain = df.uc.unc %>%
              'might + literal' = parse(text=TeX(r'(might $\phi$/$\neg\phi$)')),
              'literal' = parse(text=TeX(r'($\phi$/$\neg\phi$)')))
   )
+p.uc_pe_uncertain
 ggsave(paste(DATA$plot_dir, "fig2-new.png", sep=fs), p.uc_pe_uncertain,
        width=5, height=2.5)
 
@@ -312,8 +312,7 @@ for(id in stimuli){
 # selected_stim = c("if1_uh", "if1_hh", "if2_ul", "if2_ll", "independent_ul",
 #                   "independent_hh")
 selected_stim = stimuli
-df.utterance = readRDS(here("data", "prolific", "blockwords", "filtered_data",
-                            "human-exp2.rds")) %>%
+df.utterance = readRDS(paste(result_dir, "human-exp2.rds", sep = FS)) %>%
   rename(utterance = response) %>%
   group_by(id) %>%
   dplyr::count(utterance) %>%
