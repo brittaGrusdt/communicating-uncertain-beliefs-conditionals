@@ -1,4 +1,4 @@
-id,custom_response,response_non_standardized,n
+id,custom_response,uc_task,n
 if1_hh,both the blue and the green blocks will fall.,both blocks fall,1
 if1_hh,both blocks fall,the blue block and the green block fall,2
 ind_ul,the blue block does not fall and the green block falls,the green block does not fall and the blue block falls,1

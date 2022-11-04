@@ -167,7 +167,7 @@ run_fit_dirichlet = function(result_dir, per_stimulus){
     save_to <- "params-fitted-single-dirichlet.csv"
     params.fit <- get_optimal_alphas(table_data, "")
   }
-  fn = paste(result_dir, save_to, sep=fs)
+  fn = paste(result_dir, save_to, sep=FS)
   write_csv(params.fit, fn)
   message(paste("saved fitted params to to", fn))
   return(params.fit)
@@ -175,12 +175,10 @@ run_fit_dirichlet = function(result_dir, per_stimulus){
 
 # Goodness fits -----------------------------------------------------------
 # considers different causal nets, i.e. more than 1 dirichlet per stimulus
-ll_dirichlet_empirical_data = function(params, dir_empiric){
-  tbls.empiric = readRDS(paste(dir_empiric, "human-exp1-smoothed.rds", sep=fs)) %>%
-      dplyr::select(-utterance) %>% filter(!is.na(question)) %>% 
-      pivot_wider(names_from = "question", values_from = "response")
-  stimuli_ids = tbls.empiric %>% filter(id != "ind2") %>% 
-    pull(id) %>% unique()
+ll_dirichlet_empirical_data = function(params, df.pe_task){
+  tbls.empiric <- df.pe_task %>% dplyr::select(-utt.standardized) %>% 
+      pivot_wider(names_from = "slider", values_from = "pe_task.smooth")
+  stimuli_ids = tbls.empiric %>% pull(id) %>% unique()
   # only exact empirical data ll 
   if(params[1,]$id == "all"){
     id = "all"
@@ -190,12 +188,12 @@ ll_dirichlet_empirical_data = function(params, dir_empiric){
     ll.empirical = tibble(stimulus_id=id, ll_sample=ll$ll)
   } else {
     # separately for each stimulus
-    ll.empirical=map_dfr(stimuli_ids, function(id){
+    ll.empirical = map_dfr(stimuli_ids, function(id){
       par = params %>% filter(id == (!! id))
-      ll = tbls.empiric %>% filter(id==(!!id)) %>% ungroup() %>% 
+      ll = tbls.empiric %>% filter(id == (!!id)) %>% ungroup() %>% 
         dplyr::select(b, g, bg, none) %>% ll_dirichlet(par)
       name_ll = paste("ll", id, sep="__")
-      tibble(stimulus_id=id, ll_sample=ll$ll)
+      tibble(stimulus_id = id, ll_sample = ll$ll)
     });
   }
   return(ll.empirical)
@@ -203,8 +201,8 @@ ll_dirichlet_empirical_data = function(params, dir_empiric){
 
 # @arg params: with columns: id, alpha_1, alpha_2, alpha_3, alpha_4, p_cn, cn
 # @arg N: tibble with cols id, n. For each id gives number of participants
-goodness_fits_dirichlet = function(params, dir_empiric, n, N){
-  ll.empirical = ll_dirichlet_empirical_data(params, dir_empiric)
+goodness_fits_dirichlet = function(params, df.pe_task, n, N){
+  ll.empirical = ll_dirichlet_empirical_data(params, df.pe_task)
   # Sample n times N=#participants values for each stimulus
   # (each has a different fitted dirichlet distribution)
   ll_samples = group_map(params %>% group_by(id), function(par, stimulus){
@@ -224,44 +222,46 @@ goodness_fits_dirichlet = function(params, dir_empiric, n, N){
   });
   ll.per_sample_and_id = ll_samples %>% bind_rows() %>%
     group_by(stimulus_id, idx_rep) %>%
-    summarize(ll_sample=sum(ll.table), .groups="drop_last")
+    summarize(ll_sample = sum(ll.table), .groups="drop_last")
 
-  dat = left_join(ll.per_sample_and_id, ll.empirical %>% rename(ll.obs=ll_sample)) %>%
-    mutate(sample_worse=ll_sample < ll.obs) %>% add_column(n=n)
-  p.val = dat %>% group_by(stimulus_id) %>% summarize(p.val=mean(sample_worse))
+  dat = left_join(ll.per_sample_and_id,
+                  ll.empirical %>% rename(ll.obs=ll_sample)
+                  ) %>%
+    mutate(sample_worse = ll_sample < ll.obs) %>% add_column(n = n)
+  p.val = dat %>% group_by(stimulus_id) %>% summarize(p.val = mean(sample_worse))
   return(left_join(dat, p.val))
 }
 
 # use id="all" if not per stimulus (each=F)
-compute_goodness_dirichlets = function(params, dir_empiric, N, n=10**3, each=T){
-  res.goodness = goodness_fits_dirichlet(params, dir_empiric, n, N) %>% 
+compute_goodness_dirichlets = function(params, df.pe_task, N, dir_empiric, 
+                                       n = 10**3, each = T){
+  res.goodness = goodness_fits_dirichlet(params, df.pe_task, n, N) %>% 
     arrange(desc(p.val));
   p.vals = res.goodness %>% dplyr::select(-ll_sample, -sample_worse, -idx_rep) %>%
     distinct_at(vars(c(stimulus_id)), .keep_all = T) %>% 
-    mutate(p.val=round(p.val, 3))
+    mutate(p.val = round(p.val, 3))
   fn = ifelse(each, "fitted-dirichlet.csv", "fitted-single-dirichlet.csv")
-  write_csv(p.vals, paste(dir_empiric, fs, "simulated-p-values-", fn, sep=""))
+  write_csv(p.vals, paste(dir_empiric, FS, "simulated-p-values-", fn, sep=""))
   return(res.goodness)
 }
 
-plot_goodness_dirichlets = function(res.goodness, params.fit, dir_empiric){
+plot_goodness_dirichlets = function(res.goodness, params.fit, df.pe_task, plot_dir){
   if(params.fit[1,]$id == "all") { fn = "goodness-single-dirichlet-fit.png"
   }else {
     fn = "goodness-dirichlet-fits.png"
   }
-  ll.obs = ll_dirichlet_empirical_data(params.fit, dir_empiric)
-  p = res.goodness %>% ggplot(aes(x=ll_sample)) +
+  ll.obs = ll_dirichlet_empirical_data(params.fit, df.pe_task)
+  p = res.goodness %>% ggplot(aes(x = ll_sample)) +
     geom_density() +
-    geom_point(data=ll.obs, aes(x=ll_sample, y=0), color='red', size=2) +
-    geom_vline(data=ll.obs, aes(xintercept=ll_sample)) +
+    geom_point(data = ll.obs, aes(x = ll_sample, y = 0), color = 'red', size = 2) +
+    geom_vline(data=ll.obs, aes(xintercept = ll_sample)) +
     facet_wrap(~stimulus_id) +
     theme_classic() +
     labs(x="log-likelihood simulated data")
-  plot_dir = paste(dir_empiric, "plots", sep=fs)
   if(!dir.exists(plot_dir)){dir.create(plot_dir)}
-  save_as = paste(dir_empiric, "plots", fn, sep=fs)
-  ggsave(save_as, p, height=6)
-  print(paste("saved plot to", save_as))
+  save_to = paste(plot_dir, fn, sep = FS)
+  ggsave(fn, p, height=6)
+  print(paste("saved plot to", save_to))
   return(p)
 }
 

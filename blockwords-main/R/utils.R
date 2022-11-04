@@ -8,7 +8,7 @@ epsilon = 0.000001
 seed_fitted_tables = "20202020"
 
 
-tidy_test_exp1 <- function(df){
+retrieve_test_pe_data <- function(df){
   dat.test <- df %>% filter(str_detect(trial_name, "multiple_slider")) %>%
     dplyr::select(trial_name, trial_number,
                   prolific_id, RT, QUD, id, group,
@@ -19,48 +19,32 @@ tidy_test_exp1 <- function(df){
                  values_to = "response") %>%
     pivot_longer(cols=c(contains("question")),
                  names_to = "question_idx", names_prefix = "question",
-                 values_to = "question") %>%
+                 values_to = "slider") %>%
     filter(response_idx == question_idx) %>%
     dplyr::select(-response_idx, -question_idx)
   
   dat.test <- dat.test %>%
     mutate(response = as.numeric(response),
-           response = response/100,
+           response = response / 100,
            prolific_id = factor(prolific_id),
-           group=case_when(id=="ind2" ~ "group1",
-                           TRUE ~ group),
-           id = factor(id)
-    )
+           id = factor(id)) %>%
+    add_smoothed_exp1() %>% rename(pe_task = response)
   return(dat.test)
 }
 
-tidy_test_exp2 <- function(df){
+retrieve_test_uc_data <- function(df){
   dat.test <- df %>%
     filter(startsWith(trial_name, "fridge_view")) %>%
     dplyr::select(prolific_id, RT, QUD, id, group, response1, response2,
                   trial_name, trial_number, cost.uc) %>%
-    rename(custom_response = response2, response = response1)
+    rename(custom_response = response2, uc_task = response1)
   
   dat.test <- dat.test %>%
-    mutate(prolific_id = factor(prolific_id),
-           id = factor(id))
+    mutate(prolific_id = factor(prolific_id), id = factor(id))
   return(dat.test)
 }
 
-tidy_test_joint <- function(df){
-  data.prior = df %>% filter(str_detect(trial_name, "multiple_slider")) %>%
-    tidy_test_exp1() %>%
-    add_column(custom_response="", utterance="")
-  # do not save example fridge trial (name=fridge_train)
-  data.production = df %>% filter(str_detect(trial_name, "fridge_view")) %>%
-    tidy_test_exp2() %>%
-    rename(utterance = response) %>%
-    add_column(question = "")
-  dat.test = bind_rows(data.prior, data.production)
-  return(dat.test)
-}
-
-tidy_train <- function(df){
+retrieve_train_pe_data <- function(df){
   dat.train <- df %>%
     filter(startsWith(trial_name, "animation") |
            trial_name == "multiple_slider_train") %>%
@@ -81,17 +65,12 @@ tidy_train <- function(df){
     group_by(prolific_id, id) %>%
     mutate(response = as.numeric(response), response = response/100) %>%
     add_smoothed_exp1()
-  
-  dat.train.smooth = dat.train %>% rename(response=r_smooth) %>%
-    dplyr::select(-r_orig, -n, -trial_name)
-  dat.train.orig = dat.train %>% rename(response=r_orig) %>%
-    dplyr::select(-r_smooth, -n, -trial_name)
-  return(list(smooth=dat.train.smooth, orig=dat.train.orig))
+  return(dat.train)
 }
 
-tidy_data <- function(data, N_trials){
+retrieve_data <- function(raw_data, N_trials){
   # 1. dplyr::select only columns relevant for data analysis
-  df <- data %>%
+  df <- raw_data %>%
     dplyr::select(prolific_id, submission_id,
                   question, question1, question2, question3, question4,
                   QUD, response,
@@ -99,13 +78,9 @@ tidy_data <- function(data, N_trials){
                   id, trial_name, trial_number, group,
                   timeSpent, RT, cost,
                   education, comments, gender, age) %>% 
-    rename(cost.uc = cost)
-  # always use the same abbreviation
-  df <- df %>% mutate(question1 = case_when(question1 == "gb" ~ "bg",
-                                            question1 == "yr" ~ "ry",
-                                            TRUE ~ question1),
-                      response3 = as.character(response3),
-                      response4 = as.character(response4));
+    rename(cost.uc = cost) %>% 
+    mutate(response3 = as.character(response3),
+           response4 = as.character(response4))
   dat.color_vision <- tibble();
   if(N_trials$color_vision != 0) {
     dat.color_vision <- df %>%
@@ -113,8 +88,8 @@ tidy_data <- function(data, N_trials){
       dplyr::select(prolific_id, id, question, response, expected, QUD, trial_number)
     df <- df %>% filter(!startsWith(trial_name, "color-vision"));
   }
-  dat.slider_choice=tibble()
-  dat.attention_check=tibble()
+  dat.slider_choice = tibble()
+  dat.attention_check = tibble()
   if(N_trials$slider_choice != 0){
     cols = c("prolific_id", "id", "question", "response", "expected",
              "trial_name", "trial_number")
@@ -133,37 +108,49 @@ tidy_data <- function(data, N_trials){
     mutate(comments = as.character(comments),
            comments = if_else(is.na(comments), "", comments)) %>%
     unique()
-  dat.info <- df %>%
-    dplyr::select(prolific_id, education, gender, age, timeSpent) %>%
-    unique()
-  dat.train <- tidy_train(df)
-  dat.test <- tidy_test_joint(df)
-  dat.all <- list(test=dat.test, train.smooth=dat.train$smooth,
-                  train.orig=dat.train$orig, color=dat.color_vision,
-                  train.attention=dat.attention_check,
-                  train.slider_choice=dat.slider_choice,
-                  info=dat.info, comments=dat.comments)
+  dat.info <- df %>% 
+    dplyr::select(prolific_id, education, gender, age, timeSpent) %>% 
+    distinct() %>% 
+    mutate(gender = case_when(is.na(gender) ~ "not specified", 
+                                             T ~ gender),
+           education = case_when(is.na(education) ~ "not specified",
+                           T ~ education))
+  dat.train <- retrieve_train_pe_data(df)
+  dat.test.pe <- df %>% filter(str_detect(trial_name, "multiple_slider")) %>%
+    retrieve_test_pe_data() 
+  dat.test.uc <- df %>% filter(str_detect(trial_name, "fridge_view")) %>%
+    retrieve_test_uc_data() 
+  
+  dat.all <- list(test.pe_task = dat.test.pe, 
+                  test.uc_task = dat.test.uc,
+                  train.pe = dat.train,
+                  color = dat.color_vision,
+                  train.attention = dat.attention_check,
+                  train.slider_choice = dat.slider_choice,
+                  comments=dat.comments,
+                  info=dat.info) 
   
   return(dat.all)
 }
 
+# standardize all to group1!
 standardize_color_groups_exp1 <- function(df){
   # ind2 is used as single training example for production task (always group1!)
   df <- df %>%
-    mutate(question =
-             case_when((question == "bg" | question == "gb" |
-                          question=="ry" | question == "yr") ~ "ac",
-                       question == "none" ~ "none",
-                       group=="group1" & (question=="b" | question=="r") ~ "a",
-                       group=="group1" & (question=="g" | question=="y") ~ "c",
-                       group=="group2" & question=="g"  ~ "a",
-                       group=="group2" & question=="b" ~ "c"
+    mutate(slider =
+             case_when((slider == "bg" | slider == "gb" |
+                          slider=="ry" | slider == "yr") ~ "ac",
+                       slider == "none" ~ "none",
+                       group=="group1" & (slider=="b" | slider=="r") ~ "a",
+                       group=="group1" & (slider=="g" | slider=="y") ~ "c",
+                       group=="group2" & slider=="g"  ~ "a",
+                       group=="group2" & slider=="b" ~ "c"
              ),
            group = "group1",
-           question = case_when(question == "a" ~ "b",
-                                question == "c" ~ "g",
-                                question == "ac" ~ "bg",
-                                question == "none" ~ "none")
+           slider = case_when(slider == "a" ~ "b",
+                              slider == "c" ~ "g",
+                              slider == "ac" ~ "bg",
+                              slider == "none" ~ "none")
     )
   return(df)
 }
@@ -171,25 +158,25 @@ standardize_color_groups_exp1 <- function(df){
 # standardizes selected responses + custom responses as if all were in group1
 standardize_color_groups_exp2 <- function(df){
   df <- df %>%
-    mutate(response=
-            case_when(group=="group2" ~ str_replace_all(response, "blue", "G"),
-                       T ~ str_replace_all(response, "blue", "B")),
+    mutate(uc_task=
+            case_when(group == "group2" ~ str_replace_all(uc_task, "blue", "G"),
+                      T ~ str_replace_all(uc_task, "blue", "B")),
            custom_response=
-             case_when(group=="group2" ~ str_replace_all(custom_response, "blue", "-G-"),
+             case_when(group == "group2" ~ str_replace_all(custom_response, "blue", "-G-"),
                        T ~ str_replace_all(custom_response, "blue", "-B-"))) %>%
     
-    mutate(response=case_when(group=="group2" ~ str_replace_all(response, "green", "B"),
-                              T ~ str_replace_all(response, "green", "G")),
-           custom_response=
-             case_when(group=="group2" ~ str_replace_all(custom_response, "green", "-B-"),
+    mutate(uc_task = case_when(group == "group2" ~ str_replace_all(uc_task, "green", "B"),
+                               T ~ str_replace_all(uc_task, "green", "G")),
+           custom_response =
+             case_when(group == "group2" ~ str_replace_all(custom_response, "green", "-B-"),
                        T ~ str_replace_all(custom_response, "green", "-G-"))) %>%
-    mutate(response=str_replace_all(response, "G", "green"),
-           custom_response=str_replace_all(custom_response, "-G-", "green")) %>%
-    mutate(response=str_replace_all(response, "B", "blue"),
-           custom_response=str_replace_all(custom_response, "-B-", "blue"));
-  df <- df %>%
-    mutate(group="group1", response = as.factor(response),
-           custom_response=as.factor(custom_response));
+    mutate(uc_task = str_replace_all(uc_task, "G", "green"),
+           custom_response = str_replace_all(custom_response, "-G-", "green")) %>%
+    mutate(uc_task = str_replace_all(uc_task, "B", "blue"),
+           custom_response = str_replace_all(custom_response, "-B-", "blue"));
+  df <- df %>% mutate(group = "group1", 
+                      uc_task = as.factor(uc_task),
+                      custom_response = as.factor(custom_response));
   return(df)
 }
 
@@ -215,23 +202,21 @@ add_probs <- function(df){
 # @arg df1 in long-format
 # smooth slider ratings from prior elicitation experiment (exp1)
 add_smoothed_exp1 <- function(df1){
-  df = df1 %>% group_by(prolific_id, id) %>%
-    filter(sum(response) != 0)
+  df = df1 %>% group_by(prolific_id, id) %>% filter(sum(response) != 0)
   # normalize st. slider responses sum up to 1 but also keep original response
   df.with_smoothed = df %>%
-    mutate(n=sum(response + epsilon), r_smooth=(response + epsilon)/n) %>%
-    rename(r_orig=response)
+    mutate(n = sum(response + epsilon), 
+           pe_task.smooth = (response + epsilon) / n) %>%
+    dplyr::select(-n)
   return(df.with_smoothed)
 }
 
-save_prob_tables <- function(df, result_dir){
+save_prob_tables <- function(df.utt_probs, result_dir){
   # Save all tables (with smoothed values)
-  tables_all <- df %>% dplyr::select(id, question, prolific_id, r_smooth) %>%
-    group_by(id, prolific_id) %>%
-    pivot_wider(names_from = question, values_from = r_smooth) %>%
-    add_probs()
-  path_tables_all <- paste(result_dir, "pe_tables_smooth.csv", sep=FS);
-  write.table(tables_all, file=path_tables_all, sep = ",", row.names=FALSE)
+  tables_all <- df.utt_probs %>% dplyr::select(id, prob, prolific_id, response) %>%
+    pivot_wider(names_from = prob, values_from = response)
+  path_tables_all <- paste(result_dir, "pe_tables_smooth.csv", sep = FS);
+  write.table(tables_all, file = path_tables_all, sep = ",", row.names = F)
   message(paste('written smoothed probability tables to:', path_tables_all))
   
   # tables from PE-task rounded to two digits: each receives an unique id
@@ -239,41 +224,34 @@ save_prob_tables <- function(df, result_dir){
   tables_empiric_pids = tables_all %>%
     dplyr::select("bg", "b", "g", "none", "prolific_id", "id") %>% 
     unite("p_id", c(prolific_id, id)) %>% group_by(bg, b, g, none) %>%
-    summarize(p_id=list(p_id), .groups="keep") %>% ungroup() %>% 
-    mutate(bg.round=as.integer(round(bg, 2) * 100), 
-           b.round=as.integer(round(b, 2) * 100),
-           g.round=as.integer(round(g, 2) * 100), 
-           none.round=as.integer(round(none, 2) * 100)) %>%
+    summarize(p_id = list(p_id), .groups = "keep") %>% ungroup() %>% 
+    mutate(bg.round = as.integer(round(bg, 2) * 100), 
+           b.round = as.integer(round(b, 2) * 100),
+           g.round = as.integer(round(g, 2) * 100), 
+           none.round = as.integer(round(none, 2) * 100)) %>%
     rowid_to_column("empirical_id")
   save_data(tables_empiric_pids, 
-            paste(result_dir, "tables-empiric-pids.rds", sep=FS))
+            paste(result_dir, "tables-empiric-pids.rds", sep = FS))
 }
 
-process_data <- function(path_to_raw_csv, result_dir, N_trials){
+process_data <- function(path_to_raw_csv, N_trials){
   raw_data = read_csv(path_to_raw_csv)
-  list_tidy_data <- tidy_data(raw_data, N_trials)
+  list_data <- retrieve_data(raw_data, N_trials)
   
-  # Further process TEST-trial data --------------------------------------------
-  test_data <- list_tidy_data$test
-  pe_data <- test_data %>% 
-    filter(str_detect(trial_name, "multiple_slider")) %>% 
-    add_smoothed_exp1() %>% 
-    standardize_color_groups_exp1() %>% 
-    dplyr::select(-cost.uc)
-  
-  save_prob_tables(pe_data, result_dir)
-  uc_data <- test_data %>% filter(str_detect(trial_name, "fridge_view")) %>%
-    mutate(response = utterance) %>% dplyr::select(-utterance) %>% 
-    standardize_color_groups_exp2() %>% 
-    mutate(response_non_standardized = response) %>% 
+  # prepare test data
+  pe_data <- list_data$test.pe %>% standardize_color_groups_exp1()
+  pe.utt_probs.smooth <- add_utt_probs_to_pe_task_data(pe_data, smoothed = T)
+  pe.utt_probs.orig <- add_utt_probs_to_pe_task_data(pe_data, smoothed = F)
+
+  uc_data <- list_data$test.uc %>% standardize_color_groups_exp2() %>% 
     standardize_sentences()
-  formatted_test_data <- bind_rows(pe_data %>% rename(response = utterance), 
-                                   uc_data);
   
-  list_tidy_data$test <- formatted_test_data
-  # save processed data --------------------------------------------------------
-  save_data(list_tidy_data, paste(result_dir, "tidy_data.rds", sep = FS))
-  return(list_tidy_data)
+  list_data$test.pe_task = pe_data
+  list_data$test.pe_utt_probs_smooth = pe.utt_probs.smooth
+  list_data$test.pe_utt_probs_orig = pe.utt_probs.orig
+  list_data$test.uc_task = uc_data
+  
+  return(list_data)
 }
 
 bin_tables = function(tables){
@@ -476,8 +454,8 @@ get_controlled_factors = function(df){
 # to get one value per participant sum these up (for each participant)
 distancesResponses = function(df.prior, save_as = NA){
   df = df.prior %>% 
-    dplyr::select(prolific_id, id, response, question) %>%
-    unite(col = "id_quest", "id", "question", sep="__", remove=FALSE)
+    dplyr::select(prolific_id, id, response, slider) %>%
+    unite(col = "id_quest", "id", "slider", sep="__", remove=FALSE)
   
   distances <- tibble()
   for(proband in df.prior$prolific_id %>% unique()) {
@@ -501,7 +479,7 @@ distancesResponses = function(df.prior, save_as = NA){
     }
   }
   dist.sums <- distances %>%
-    separate("id_quest", into=c("id", "question"), sep="__") %>%
+    separate("id_quest", into=c("id", "slider"), sep="__") %>%
     group_by(id, comparator) %>%
     summarize(sum_sq_diffs = sum(sq_diff), .groups="drop_last") %>% 
     mutate(mean.id=mean(sum_sq_diffs), sd.id=sd(sum_sq_diffs)) %>%
@@ -517,32 +495,58 @@ distancesResponses = function(df.prior, save_as = NA){
 }
 
 
-formatPriorElicitationData = function(test.prior, smoothed=TRUE){
-  df.prior_responses = test.prior %>%
-    dplyr::select(-custom_response, -QUD, -trial_number, -trial_name, 
-                  -response, -response_non_standardized, -cost.uc)
+add_utt_probs_to_pe_task_data = function(test.prior, smoothed=TRUE){
+  df.pe_responses = test.prior %>% dplyr::select(-QUD, -trial_name)
   if(smoothed){
-    df.prior_responses = df.prior_responses %>% dplyr::select(-r_orig) %>% 
-      pivot_wider(names_from = "question", values_from = "r_smooth")
+    df.pe_responses = df.pe_responses %>% dplyr::select(-pe_task) %>% 
+      pivot_wider(names_from = "slider", values_from = "pe_task.smooth")
   } else {
-    df.prior_responses = df.prior_responses %>% dplyr::select(-r_smooth) %>%
-      pivot_wider(names_from = "question", values_from = "r_orig")
+    df.pe_responses = df.pe_responses %>% dplyr::select(-pe_task.smooth) %>%
+      pivot_wider(names_from = "slider", values_from = "pe_task")
   }
-  df.prior_responses = df.prior_responses %>% add_probs()
-  
-  prior_responses = df.prior_responses %>%
+  df.probabilities = df.pe_responses %>% add_probs() %>% 
     pivot_longer(cols = c("b", "g", "bg", "none", starts_with("p_")),
-                 names_to = "prob", values_to = "val") %>%
-    translate_probs_to_utts()
-  
-  exp1.human = prior_responses %>% dplyr::select(-group, -n) %>%
-    rename(human_exp1 = val, question = prob) %>% 
-    mutate(question = 
-             case_when(!question %in% c("bg", "b", "g", "none") ~ NA_character_,
-                       TRUE ~ question)) %>% 
-    rename(response = human_exp1)
-  return(exp1.human)
+                 names_to = "prob", values_to = "response") %>%
+    translate_probs_to_utts() %>% dplyr::select(-group) %>%
+    mutate(slider = case_when(!prob %in% c("bg", "b", "g", "none") ~ NA_character_,
+                              TRUE ~ prob))
+  return(df.probabilities)
 }
 
+join_pe_uc_data = function(pe_data, uc_data){
+  df.uc_data = uc_data %>% 
+    dplyr::select(prolific_id, id, uc_task, custom_response, 
+                  utt.standardized, RT, cost.uc, trial_number) %>%
+    add_column(human_exp2 = 1) # mark rows with selected utterance in uc task
+  
+  joint_data = left_join(
+    pe_data %>% rename(RT.pe_task = RT, trial_nb_pe = trial_number, pe_task = response),
+    df.uc_data %>% rename(RT.uc_task = RT, trial_nb_uc = trial_number)
+  )
+  return(joint_data)
+}
+
+# compute_utt_probs = function(observations){
+#   observations %>%
+#     mutate(p_utt_obs = case_when(utt_observed %in% c("A", "might A") ~ AC + `A-C`, 
+#                                  utt_observed %in% c("-A", "might -A") ~ `-AC` + `-A-C`,
+#                                  utt_observed %in% c("C", "might C") ~ `AC` + `-AC`, 
+#                                  utt_observed %in% c("-C", "might -C") ~ `A-C` + `-A-C`,
+#                                  utt_observed == "C and A" ~  `AC`,
+#                                  utt_observed == "C and -A" ~ `-AC`,
+#                                  utt_observed == "-C and A" ~ `A-C`,
+#                                  utt_observed == "-C and -A" ~ `-A-C`,
+#                                  
+#                                  utt_observed == "A > C" ~  AC / (AC + `A-C`),
+#                                  utt_observed == "C > A" ~  `AC` / (`AC` + `-AC`),
+#                                  utt_observed == "A > -C" ~ `A-C` / (AC + `A-C`),
+#                                  utt_observed == "-C > A" ~ `A-C` / (`A-C` + `-A-C`),
+#                                  
+#                                  utt_observed == "-A > C" ~ `-AC` / (`-AC` + `-A-C`),
+#                                  utt_observed == "C > -A" ~  `-AC` / (`AC` + `-AC`),
+#                                  utt_observed == "-A > -C" ~ `-A-C` / (`-AC` + `-A-C`),
+#                                  utt_observed == "-C > -A" ~ `-A-C` / (`A-C` + `-A-C`)
+#     ))
+# }
 
 

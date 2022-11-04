@@ -5,22 +5,22 @@ FS = .Platform$file.sep
 # "the blue block and the green block fall" -> "both blocks fall"
 summarize_utts = function(df, w_pos, w_neg, utt){
   for(w in w_pos) {
-    df[[paste('word', w, sep='_')]] = with(df, str_detect(response, w))
+    df[[paste('word', w, sep='_')]] = with(df, str_detect(utt.standardized, w))
   }
   
   for(w in w_neg) {
-    df[[paste('word_not', w, sep='_')]] = with(df, !str_detect(response, w))
+    df[[paste('word_not', w, sep='_')]] = with(df, !str_detect(utt.standardized, w))
   }
   
   dat <- df %>% group_by(prolific_id, id) %>% 
-    pivot_longer(cols=starts_with('word_'), names_to='word',
+    pivot_longer(cols = starts_with('word_'), names_to = 'word',
                  values_to = "has_word") %>% 
     group_by(prolific_id, id) %>%
     # filter(has_word) %>% 
-    mutate(has_all=sum(has_word),
-           response=
+    mutate(has_all = sum(has_word),
+           utt.standardized =
              case_when(has_all ==  length(w_pos) + length(w_neg) ~ utt,
-                       TRUE ~ response)
+                       TRUE ~ utt.standardized)
     ) %>%
     dplyr::select(-has_all, -word, -has_word) %>% ungroup() %>% distinct()
   return(dat)
@@ -55,10 +55,12 @@ standardized.sentences = list(
 
 # (the green and the blue = the blue and the green, etc.)
 standardize_sentences = function(df.test){
-  df.test = df.test %>% mutate(response = as.character(response))
+  df.test = df.test %>% mutate(utt.standardized = as.character(uc_task))
+  
   test.standardized <- df.test %>%
     summarize_utts(c("and"), c("does not"), standardized.sentences$bg) %>%
-    mutate(response=str_replace(response, "and", "but")) %>% 
+    mutate(utt.standardized = str_replace(utt.standardized, "and", "but")) %>%
+    
     summarize_utts(c("neither"), c("does not"), standardized.sentences$none) %>%
     summarize_utts(c("but", "green falls", "blue does not"), c(), standardized.sentences$g) %>%
     summarize_utts(c("but", "blue falls", "green does not"), c(), standardized.sentences$b) %>% 
@@ -106,7 +108,7 @@ standardize_sentences = function(df.test){
     summarize_utts(c("the green block does not fall"), c(), standardized.sentences$only_ng) %>%
     summarize_utts(c("the blue block does not fall"), c(), standardized.sentences$only_nb);
   
-  utterances <- test.standardized %>% dplyr::select(response) %>% unique()
+  utterances <- test.standardized %>% dplyr::select(utt.standardized) %>% unique()
   print('standardized responses:')
   print(utterances)
   return(test.standardized)
@@ -160,9 +162,9 @@ translate_utterances = function(speaker.model, group = "bg"){
   return(df)
 }
 
-#@arg df: with columns 'utterance' and 'prob'
+#@arg df: with column 'prob'
 translate_probs_to_utts = function(df){
-  dat = df %>% mutate(utterance=
+  dat = df %>% mutate(utt.standardized =
                         case_when(prob=="b" ~ standardized.sentences$b,
                                   prob=="g" ~ standardized.sentences$g,
                                   prob=="bg" ~ standardized.sentences$bg,
@@ -190,20 +192,18 @@ translate_probs_to_utts = function(df){
 
 
 # computes counts of utterances per stimulus and corresponding ratio
-task2_avg_per_stimulus = function(result_dir){
-  behavioral = readRDS(paste(result_dir, "human-exp1-smoothed-exp2.rds", sep=FS))
+# input is joint data since we want 0-entries if an utterance is never selected
+task2_avg_per_stimulus = function(behavioral){
   behav.n_per_stim = behavioral %>% dplyr::select(prolific_id, id) %>% 
-    distinct() %>% group_by(id) %>% summarize(N=n(), .groups="drop_last")
+    distinct() %>% group_by(id) %>% summarize(N = n(), .groups="drop_last")
   
   behav.count = behavioral %>%
-    ungroup() %>% dplyr::select(-human_exp1, -prolific_id) %>%
-    mutate(human_exp2 = case_when(is.na(human_exp2) ~ 0, 
-                                  TRUE ~ 1)) %>%
-    group_by(id, utterance) %>%
+    mutate(human_exp2 = case_when(is.na(human_exp2) ~ 0, TRUE ~ 1)) %>%
+    group_by(id, utt.standardized) %>% 
     summarize(count = sum(human_exp2), .groups="drop_last")
   
   behav.avg = left_join(behav.n_per_stim, behav.count, by="id") %>%
-    mutate(ratio=count/N)
+    mutate(ratio = count / N)
   return(behav.avg)
 }
 
@@ -295,4 +295,49 @@ join_model_behavioral = function(dat.speaker, params){
     message(paste("results written to", fn))
   }
   return(behav_model)
+}
+
+translate_standardized2model = function(df) {
+  df <- df %>%
+    mutate(utterance =
+             case_when(utt.standardized == standardized.sentences$bg ~ "C and A",
+                       utt.standardized == standardized.sentences$none ~ "-C and -A" ,
+                       utt.standardized == standardized.sentences$g ~ "C and -A",
+                       utt.standardized == standardized.sentences$b ~ "-C and A",
+                       utt.standardized == standardized.sentences$if_bg ~ "A > C",
+                       utt.standardized == standardized.sentences$if_bng ~ "A > -C",
+                       utt.standardized == standardized.sentences$if_nbg ~ "-A > C",
+                       utt.standardized == standardized.sentences$if_nbng ~ "-A > -C",
+                       utt.standardized == standardized.sentences$if_gb ~ "C > A",
+                       utt.standardized == standardized.sentences$if_gnb ~ "C > -A",
+                       utt.standardized == standardized.sentences$if_ngb ~ "-C > A",
+                       utt.standardized == standardized.sentences$if_ngnb ~ "-C > -A",
+                       utt.standardized == standardized.sentences$only_g ~ "C",
+                       utt.standardized == standardized.sentences$only_ng ~ "-C",
+                       utt.standardized == standardized.sentences$only_b ~ "A",
+                       utt.standardized == standardized.sentences$only_nb ~ "-A",
+                       utt.standardized == standardized.sentences$might_g ~ "might C",
+                       utt.standardized == standardized.sentences$might_ng ~ "might -C",
+                       utt.standardized == standardized.sentences$might_b ~ "might A",
+                       utt.standardized == standardized.sentences$might_nb ~ "might -A"
+             )
+    )
+  return(df)
+}
+
+save_utt_frequencies = function(uc_pe_data, target_dir){
+  human.exp2.avg = task2_avg_per_stimulus(uc_pe_data)
+  fn_utts = paste(target_dir, "behavioral-avg-task2.csv", sep=FS)
+  write_csv(human.exp2.avg, fn_utts)
+  message(paste('frequency utterances written to:', fn_utts))
+  
+  # also save for chunked utterances
+  df2.chunked = human.exp2.avg %>% rename(utterance = utt.standardized) %>% 
+    chunk_utterances() %>% rename(utt_type = utterance)
+  df2.chunked.avg = df2.chunked %>% group_by(id, utt_type) %>% 
+    summarize(count = sum(count), ratio = sum(ratio), .groups="drop_last")
+  
+  fn_chunked = paste(target_dir, "behavioral-avg-task2-chunked.csv", sep = FS)
+  write_csv(df2.chunked.avg, fn_chunked)
+  message(paste('frequency utterance types written to:', fn_chunked))
 }
