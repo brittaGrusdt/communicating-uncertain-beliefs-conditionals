@@ -10,86 +10,75 @@ source(here("R", "analysis-utils.R"))
 
 # Data --------------------------------------------------------------------
 result_dir = here("data", "formatted-cleaned")
-DATA = load_formatted_data(result_dir)
+DATA = read_csv(here("data", "cleaned-data.csv"))
 
-tables.smooth = DATA$joint.smooth %>%
-  dplyr::select(-human_exp2) %>% distinct() %>% 
-  mutate(utterance = case_when(utterance==standardized.sentences$bg ~ "bg",
-                               utterance==standardized.sentences$b ~ "b",
-                               utterance==standardized.sentences$g ~ "g",
-                               utterance==standardized.sentences$none ~ "none", 
-                               TRUE ~ utterance)) %>%
-  filter((utterance %in% questions.test)) %>%
-  pivot_wider(names_from="utterance", values_from="human_exp1") %>%
+tables.smooth = DATA %>% filter(!is.na(slider)) %>% 
+  dplyr::select(prolific_id, id, pe_task.smooth, slider) %>% 
+  pivot_wider(names_from = "slider", values_from="pe_task.smooth") %>%
   group_by(prolific_id, id) %>%
   rowid_to_column()
-
-tables.long = tables.smooth %>% 
-  pivot_longer(cols=c(bg, b, g, none), names_to="question", values_to="response") 
 
 stimuli = tables.smooth$id %>% unique() %>% sort()
 
 behav_dirichlet = join_model_behavioral_averages(
-  "dirichlet-prior", DATA$result_dir, fn_data="-empirical"
-) %>% mutate(utt.real=utterance) %>% chunk_utterances() %>%
-  rename(utt.type=utterance, utterance=utt.real)
+  "dirichlet-prior", result_dir, fn_data = "-empirical"
+) %>% mutate(utterance = utt.standardized) %>% chunk_utterances() %>%
+  rename(utt.type = utterance)
 
 behav_model_abstract = join_model_behavioral_averages(
-  "abstract-prior", DATA$result_dir, fn_data="-empirical"
-) %>% mutate(utt.real=utterance) %>% chunk_utterances() %>%
-  rename(utt.type=utterance, utterance=utt.real)
+  "abstract-prior", result_dir, fn_data = "-empirical"
+) %>% mutate(utterance = utt.standardized) %>% chunk_utterances() %>%
+  rename(utt.type = utterance)
 
 avg.dirichlet = read_csv(
   here("model", "results", "dirichlet-prior",
        "model-avg-predictions-empirical-chunked.csv")
-  ) %>% dplyr::select(-best.utt) %>% add_column(predictor="situation-specific prior")
+  ) %>% dplyr::select(-best.utt) %>% 
+  add_column(predictor = "situation-specific prior")
 
 avg.abstract = read_csv(
   here("model", "results", "abstract-prior",
        "model-avg-predictions-empirical-chunked.csv")
-  ) %>% dplyr::select(-best.utt) %>% add_column(predictor="abstract state prior")
+  ) %>% dplyr::select(-best.utt) %>%
+  add_column(predictor = "abstract state prior")
 
 # behavioral utterance choice data (all, not only ratios)
-data = readRDS(paste(result_dir, "human-exp1-smoothed-exp2.rds", sep = FS)) %>%
-  get_controlled_factors()
-
-data.uc = data %>% filter(human_exp2 == 1 & id!="ind2") %>% 
-  mutate(utt=utterance) %>% 
+data.uc =  DATA %>% get_controlled_factors() %>% filter(human_exp2 == 1) %>% 
+  mutate(utterance = utt.standardized) %>% 
   chunk_utterances() %>%
-  rename(utt_type=utterance, utterance=utt) %>% 
-  dplyr::select(-human_exp2)
+  rename(utt.type = utterance)
 
 # Figure 2 ----------------------------------------------------------------
-df.stats = data.uc %>% group_by(utt_type) %>%
-  summarize(m=mean(human_exp1)) %>%
-  mutate(m.all=mean(m))
-df.stats$m.wo_conj = df.stats %>% filter(utt_type != "conjunction") %>%
+df.stats = data.uc %>% group_by(utt.type) %>%
+  summarize(m = mean(pe_task)) %>%
+  mutate(m.all = mean(m))
+df.stats$m.wo_conj = df.stats %>% filter(utt.type != "conjunction") %>%
   pull(m) %>% mean()
 df.uc = data.uc %>%
-  mutate(prior_blue=as.character(prior_blue), 
-         prior_blue=case_when(
-           (prior_blue=="unc" | prior_blue =="uncl") ~ "uncertain",
+  mutate(prior_blue = as.character(prior_blue), 
+         prior_blue = case_when(
+           (prior_blue == "unc" | prior_blue == "uncl") ~ "uncertain",
            T ~ prior_blue),
          relation_type = as.character(relation_type),
          relation_type = case_when(relation_type != "independent" ~ "if",
-                                   T ~ "independent")
-  ) %>% mutate(prior_blue=as.factor(prior_blue), 
+                                   T ~ "independent")) %>% 
+  mutate(prior_blue = as.factor(prior_blue), 
                relation_type = as.factor(relation_type)) %>%
-  dplyr::select(prolific_id, id, utt_type, prior_blue, relation_type,
-                human_exp1, utterance)
+  dplyr::select(prolific_id, id, utt.type, prior_blue, relation_type,
+                pe_task, utt.standardized)
 
 df.uc.unc = df.uc %>% filter(prior_blue == "uncertain")
 p.uc_pe_uncertain = df.uc.unc %>%
-  ggplot(aes(x=utt_type, y=human_exp1)) +
+  ggplot(aes(x = utt.type, y = pe_task)) +
   geom_violin() +
-  geom_jitter(aes(color=relation_type), width=0.2, height=0, alpha=0.5, size=.8) +
-  geom_point(data=df.stats, aes(x=utt_type, y=m), color='black', size=1) +
+  geom_jitter(aes(color = relation_type), width=0.2, height=0, alpha=0.5, size=.8) +
+  geom_point(data = df.stats, aes(x = utt.type, y = m), color = 'black', size=1) +
   labs(x="utterance type created in UC task",
        y=str_wrap("rating from PE task for created utterance", width=22)
   ) +
   theme_minimal() +
-  theme(legend.position="top", axis.text=element_text(size=11)) +
-  scale_color_brewer(name="relation type", palette="Dark2") +
+  theme(legend.position = "top", axis.text = element_text(size = 11)) +
+  scale_color_brewer(name = "relation type", palette = "Dark2") +
   scale_x_discrete(
     labels=c('conjunction'='conjunction',
              'conditional'='conditional',
@@ -97,47 +86,38 @@ p.uc_pe_uncertain = df.uc.unc %>%
              'literal' = parse(text=TeX(r'($\phi$/$\neg\phi$)')))
   )
 p.uc_pe_uncertain
-ggsave(paste(DATA$plot_dir, "fig2-new.png", sep=fs), p.uc_pe_uncertain,
-       width=5, height=2.5)
+ggsave(paste(plot_dir, "fig2-new.png", sep=FS), p.uc_pe_uncertain, width=5, height=2.5)
 
 # retrieve numbers
 df.uc.unc %>%
-  dplyr::select(prolific_id, id, utterance) %>% 
-  group_by(id) %>%
-  mutate(utt.type = case_when(utterance %in% standardized.conj ~ "conj",
-                              utterance %in% standardized.lit ~ "lit",
-                              utterance %in% standardized.ifs ~ "conditional",
-                              str_detect(utterance, "might") ~ "might")) %>%  
-  group_by(id, utt.type) %>% dplyr::select(-utterance) %>% 
-  summarize(count=n(), .groups="drop_last") %>% 
-  mutate(N=sum(count)) %>% group_by(id, utt.type) %>% 
-  mutate(ratio=count/N) %>% dplyr::select(id, utt.type, ratio) %>%
-  mutate(utt.type=case_when(utt.type=="lit" ~ "literal",
-                            utt.type=="might" ~ "might+literal",
-                            utt.type=="conj" ~ "AND",
-                            utt.type=="conditional" ~ "IF", 
-                            TRUE ~ utt.type)) %>% 
-  mutate(stimulus=as.factor(id),
-         utt.type=factor(utt.type, 
-                         levels=c("might+literal", "literal", "AND", "IF")),
-         id=as.character(id), utt.type=as.character(utt.type)) %>%
-  filter(utt.type=="IF") %>% arrange(ratio)
+  dplyr::select(prolific_id, id, utt.standardized, utt.type) %>% 
+  group_by(id, utt.type) %>% dplyr::select(-utt.standardized) %>% 
+  summarize(count = n(), .groups="drop_last") %>% 
+  mutate(N = sum(count)) %>% group_by(id, utt.type) %>% 
+  mutate(ratio = count/N) %>% dplyr::select(id, utt.type, ratio) %>%
+  mutate(utt.type = as.character(utt.type),
+         utt.type = case_when(utt.type=="might + literal" ~ "might+literal",
+                              utt.type == "conjunction" ~ "AND",
+                              utt.type=="conditional" ~ "IF", 
+                              TRUE ~ utt.type),
+         stimulus = as.factor(id),
+         id = as.character(id)) %>% 
+  filter(utt.type == "IF") %>% arrange(ratio)
 
 # Figure 4 - correlations -------------------------------------------------
 # abstract + specific model plotted together
 results.joint = bind_rows(
-  behav_dirichlet %>% add_column(predictor="situation-specific prior"),
-  behav_model_abstract %>% add_column(predictor="abstract state prior")
+  behav_dirichlet %>% add_column(predictor = "situation-specific prior"),
+  behav_model_abstract %>% add_column(predictor = "abstract state prior")
 ) %>% 
-  mutate(utt.type=as.character(utt.type)) %>% 
-  mutate(stimulus.type=case_when(str_detect(stimulus, "if") ~ "dependent",
-                                 TRUE ~ "independent")) %>%
-  mutate(utt.type=case_when(utt.type=="might + literal" ~ "might+literal",
-                            utt.type=="conjunction" ~ "AND",
-                            utt.type=="conditional" ~ "IF", 
-                            TRUE ~ utt.type)) %>%
-  mutate(utt.type=factor(utt.type,
-                         levels=c("might+literal", "literal", "IF", "AND")))
+  mutate(utt.type = as.character(utt.type)) %>% 
+  mutate(stimulus.type = case_when(str_detect(stimulus, "if") ~ "dependent",
+                                   TRUE ~ "independent")) %>%
+  mutate(utt.type = case_when(utt.type == "might + literal" ~ "might+literal",
+                              utt.type == "conjunction" ~ "AND",
+                              utt.type == "conditional" ~ "IF", 
+                              TRUE ~ utt.type)) %>%
+  mutate(utt.type = factor(utt.type, levels=c("might+literal", "literal", "IF", "AND")))
 
 p.scatter = ggscatter(
   results.joint,
@@ -170,42 +150,44 @@ p.scatter = ggscatter(
         axis.text.x = element_text(size=11),
         axis.text.y = element_text(size=11))
 p.scatter
-ggsave(paste(DATA$plot_dir, "correlations-empirical.png", sep=fs),
-       p.scatter, width=6, height=3.3)
+ggsave(paste(plot_dir, "correlations-empirical.png", sep = FS), p.scatter, width=6, height=3.3)
 
 
 # Figure 3 - behavioral both tasks ----------------------------------------
+tables.long = tables.smooth %>% 
+   pivot_longer(cols = c(bg, b, g, none), names_to="slider", values_to="response") 
+
 dat <- tables.long %>% ungroup() %>%
-  mutate(order=case_when(question=="bg" ~ 1,
-                         question=="b" ~ 2,
-                         question=="g" ~ 3,
-                         question=="none" ~ 4),
-         question=as.factor(question),         
-         question=fct_recode(question,
+  mutate(order = case_when(slider == "bg" ~ 1,
+                           slider == "b" ~ 2,
+                           slider == "g" ~ 3,
+                           slider == "none" ~ 4),
+         slider = as.factor(slider),         
+         slider = fct_recode(slider,
                              "BG" = "bg", 
                              "B" = "b",
                              "G" = "g",
                              "NO" = "none"),
-         question=fct_reorder(question, order))
-pids =  dat$prolific_id %>% unique
+         slider = fct_reorder(slider, order))
+pids =  dat$prolific_id %>% unique()
 # B. slider rating plots
 plots.sliders=list()
 for(id in stimuli) {
   set.seed(123)
   df = dat %>% filter(id == (!! id)) %>%
-    filter(prolific_id %in% sample(pids, 6, replace=FALSE)) %>% 
-    group_by(question, prolific_id)
+    filter(prolific_id %in% sample(pids, 6, replace = FALSE)) %>% 
+    group_by(slider, prolific_id)
   p.ex <- dat %>%
     filter(id == (!! id)) %>%
-    ggplot(aes(x=question, y=response)) +
+    ggplot(aes(x = slider, y = response)) +
     geom_violin() +
-    geom_jitter(data=df, aes(shape=prolific_id), width=0.1, height = 0, show.legend=FALSE) +
-    geom_line(data=df, aes(group=prolific_id), alpha=0.5) +
+    geom_jitter(data = df, aes(shape = prolific_id), width=0.1, height = 0, show.legend=F) +
+    geom_line(data = df, aes(group = prolific_id), alpha = 0.5) +
     theme_minimal() +
     theme(legend.position="none",
           axis.text.x = element_text(size=14),
-          axis.text.y=element_text(size=18)
-    ) + labs(y="", x="")
+          axis.text.y = element_text(size=18)
+    ) + labs(y = "", x = "")
   plots.sliders[[id]] = p.ex
 }
 
@@ -213,25 +195,25 @@ for(id in stimuli) {
 sample_means <- function(df, i) {
   # make sure that 0-occurences are written into results tibble! (by complete)
   # utt_type must be factor!!
-  means = df[i,] %>% group_by(utt_type) %>% summarize(n=n()) %>%
-          complete(utt_type, fill=list(n=0)) %>% 
-           mutate(N=sum(n), p=n/N) %>% dplyr::select(utt_type, p) %>% 
-      pivot_wider(names_from="utt_type", values_from="p") %>% as.matrix()
+  means = df[i,] %>% group_by(utt.type) %>% summarize(n=n()) %>%
+          complete(utt.type, fill = list(n = 0)) %>% 
+           mutate(N = sum(n), p = n/N) %>% dplyr::select(utt.type, p) %>% 
+      pivot_wider(names_from = "utt.type", values_from = "p") %>% as.matrix()
   return(means)
 }
 
 y_obs = map_dfr(stimuli, function(stim){
-  dat = data.uc %>% dplyr::select(prolific_id, id, utt_type, utterance) %>% 
+  dat = data.uc %>% dplyr::select(prolific_id, id, utt.type, utt.standardized) %>% 
     filter(id == !!stim) 
   n=1000
   bootstrapped_means = boot(data = dat, statistic = sample_means, R = n)
   bootstraps = bootstrapped_means$t %>% as_tibble() %>%
     rename_all(~bootstrapped_means$t0 %>% colnames()) %>% 
     rowid_to_column("idx_sample") %>%
-    pivot_longer(cols=-idx_sample, names_to="utt", values_to="rating")
+    pivot_longer(cols = -idx_sample, names_to = "utt", values_to = "rating")
   
-  lower=0.025*n + 1; upper = 0.975*n
-  n.utts = data.uc$utt_type %>% unique() %>% length()
+  lower = 0.025*n + 1; upper = 0.975*n
+  n.utts = data.uc$utt.type %>% unique() %>% length()
   boot_ci =  bootstraps %>%
     group_by(utt) %>%
     arrange(utt, rating) %>% # order from small to large within groups
@@ -259,19 +241,19 @@ results.joint = bind_rows(y_obs %>% add_column(predictor="behavioral"),
 plots.bars = list()
 for(id in stimuli) {
   df = results.joint %>% filter(stimulus == (!! id))
-  p.bars =  df %>% ggplot(aes(y=p, x=utterance)) +
+  p.bars =  df %>% ggplot(aes(y = p, x=utterance)) +
     geom_bar(data=df %>% filter(predictor=="behavioral") , stat="identity") +
     geom_errorbar(data = df %>% filter(predictor=="behavioral"),
                   aes(ymin = ci.low, ymax = ci.up), width = 0.2) +
-    geom_point(data=df %>% filter(predictor != "behavioral"), 
-               aes(shape=predictor, color=predictor), size=2) +
+    geom_point(data = df %>% filter(predictor != "behavioral"), 
+               aes(shape = predictor, color = predictor), size=2) +
     ylim(0, 1) +
     scale_color_brewer(name="model", palette="Dark2") +
     theme_minimal() + labs(y="", x="") +
-    theme(legend.position="top", legend.text = element_text(size=22),
-          legend.title = element_text(size=22),
-          axis.text.y=element_text(size=18),
-          axis.text.x=element_text(size=16, angle=40, hjust = 1, vjust=1)) +
+    theme(legend.position="top", legend.text = element_text(size = 22),
+          legend.title = element_text(size = 22),
+          axis.text.y = element_text(size = 18),
+          axis.text.x = element_text(size = 16, angle=40, hjust = 1, vjust=1)) +
                                    # vjust = 0.6, hjust=.5)) +
     scale_shape_discrete(name="model") + 
     scale_x_discrete(
@@ -312,11 +294,9 @@ for(id in stimuli){
 # selected_stim = c("if1_uh", "if1_hh", "if2_ul", "if2_ll", "independent_ul",
 #                   "independent_hh")
 selected_stim = stimuli
-df.utterance = readRDS(paste(result_dir, "human-exp2.rds", sep = FS)) %>%
-  rename(utterance = response) %>%
-  group_by(id) %>%
-  dplyr::count(utterance) %>%
-  arrange(desc(n))
+df.utterance = data.uc %>% group_by(id) %>%
+  dplyr::count(utt.standardized) %>% arrange(desc(n)) %>% 
+  rename(utterance = utt.standardized)
 
 data.utts = group_map(df.utterance, function(df, id){
   lens = rle(df$n)$lengths
@@ -395,7 +375,7 @@ p.single_bars = ggpubr::ggarrange(
     nrow = 1, ncol = length(selected_stim)#,
     # font.label = list(size = 22), align="h"
   ) + theme(plot.margin = unit(c(0, 0, -3, 0), "cm"))
-ggsave(paste(DATA$plot_dir, "single-bars.png", sep = FS), p.single_bars,
+ggsave(paste(plot_dir, "single-bars.png", sep = FS), p.single_bars,
        width = 24, height = 2)
 
 p.stimuli <- ggpubr::ggarrange(
@@ -405,8 +385,7 @@ p.stimuli <- ggpubr::ggarrange(
   font.label = list(size = 22), 
   align="h"
 ) + theme(plot.margin = unit(c(-1, 0, -.4, 0), "cm")) 
-ggsave(paste(DATA$plot_dir, "stimuli.png", sep = FS), p.stimuli, width = 24, 
-       height = 2)
+ggsave(paste(plot_dir, "stimuli.png", sep = FS), p.stimuli, width=24, height=2)
 
 p.sliders <- ggpubr::ggarrange(
   plotlist = plots.sliders[selected_stim], 
@@ -414,8 +393,7 @@ p.sliders <- ggpubr::ggarrange(
   font.label = list(size = 22),
   align = "h"
 ) + theme(plot.margin = unit(c(0, 0, -0.4, 0), "cm")) 
-ggsave(paste(DATA$plot_dir, "sliders.png", sep = FS), p.sliders, width = 24, 
-       height = 2)
+ggsave(paste(plot_dir, "sliders.png", sep = FS), p.sliders, width=24, height=2)
 
 p.bars <- ggpubr::ggarrange(
   plotlist = plots.bars[selected_stim], 
@@ -425,8 +403,7 @@ p.bars <- ggpubr::ggarrange(
   nrow = 1, 
   ncol = length(selected_stim)
 ) + theme(plot.margin = unit(c(0, 0, -0.1, 0), "cm")) 
-ggsave(paste(DATA$plot_dir, "bars.png", sep = FS), p.bars, width = 24,
-       height = 3)
+ggsave(paste(plot_dir, "bars.png", sep = FS), p.bars, width = 24, height = 3)
 
 p.all <- ggpubr::ggarrange(
   p.single_bars, p.stimuli, p.sliders, p.bars,
@@ -437,7 +414,6 @@ p.all <- ggpubr::ggarrange(
   align="h",
   heights = c(1, 2, 2, 2.5)
 )
-ggsave(paste(DATA$plot_dir, "stimuli-all.png", sep = FS), p.all, width = 28, 
-       height = 9)
+ggsave(paste(plot_dir, "stimuli-all.png", sep = FS), p.all, width=28,  height=9)
 
 

@@ -403,19 +403,18 @@ join_model_behavioral_averages = function(tables_fn, dir_empiric,
   fn.model = ifelse(chunked, paste(fn.model, "-chunked.csv", sep=""),
                     paste(fn.model, ".csv", sep=""))
   message(paste('read model results from ', target_dir, FS, fn.model, sep=""))
-  model.avg = read_csv(paste(target_dir, fn.model, sep=FS)) %>%
-    filter(stimulus != "ind2") %>% rename(model=p)
+  model.avg = read_csv(paste(target_dir, fn.model, sep=FS)) %>% rename(model=p)
   
   fn.behav = ifelse(chunked, "behavioral-avg-task2-chunked.csv",
                     "behavioral-avg-task2.csv")
   message(paste('read behavioral results from ', dir_empiric, FS, fn.behav, sep=""))
   behav.avg = read_csv(paste(dir_empiric, fn.behav, sep=FS)) %>%
-    rename(stimulus = id, behavioral=ratio) %>% filter(stimulus != "ind2")
+    rename(stimulus = id, behavioral=ratio)
   
   data.joint = left_join(
-    behav.avg %>% dplyr::select(stimulus, utterance, behavioral),
-    model.avg %>% dplyr::select(-best.utt), 
-    by=c("stimulus", "utterance")
+    behav.avg %>% dplyr::select(stimulus, utt.standardized, behavioral),
+    model.avg %>% dplyr::select(-best.utt) %>% rename(utt.standardized = utterance), 
+    by=c("stimulus", "utt.standardized")
   )
   return(data.joint)
 }
