@@ -1,0 +1,827 @@
+---
+title: "results joint experiment"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Setup 
+
+## Load data
+
+```{r, warning=FALSE, message=FALSE}
+library(here)
+library(boot)
+library(ggforce)
+library(xtable)
+source(here("R", "analysis-utils.R"))
+theme_set(theme_minimal(base_size=12) + theme(legend.position = "top"))
+
+path_cleaned_data = here("data", "cleaned-data.csv")
+
+result_dir = here("data", "formatted-cleaned")
+plot_dir =  here("data", "formatted-cleaned", "plots")
+```
+
+## Prepare data
+
+```{r, data}
+cleaned_data = read_csv(path_cleaned_data) %>% get_controlled_factors() %>% 
+  mutate(intended_pa = as.character(prior_blue), 
+         intended_pc = case_when(str_detect(relation, "if") ~ intended_pa,
+                                 T ~ as.character(prior_green))) %>% 
+  mutate(intended_pa = factor(intended_pa, levels = c("high", "unc", "uncl", "low")),
+         intended_pc = factor(intended_pc, levels = c("high", "unc", "uncl", "low")))
+
+# select smoothed or original slider ratings!
+pe_data.long =  cleaned_data %>%
+  dplyr::select(prolific_id, id, relation, pe_task, slider,
+                prior_blue, prior_green, intended_pa, intended_pc) %>% 
+  filter(!is.na(slider)) %>% 
+  group_by(id, prolific_id) %>% 
+  mutate(slider = case_when(slider == "bg" ~ "ac", 
+                            slider == "b" ~ "a-c",
+                            slider == "g" ~ "-ac",
+                            slider == "none" ~ "-a-c")) %>% 
+  rename(world = slider) %>% 
+  mutate(world = factor(world, levels = c("ac", "a-c", "-ac", "-a-c")), 
+                        #labels = c("ac", "a¬c", "¬ac", "¬a¬c")), 
+         id = str_replace(id, "independent", "ind"),
+         id = factor(id, levels = c("if1_hh", "if1_uh", "if1_u-Lh",
+                                    "if1_lh", "if2_hl", "if2_ul", "if2_u-Ll",
+                                    "if2_ll", "ind_hh", "ind_uh", "ind_hl",
+                                    "ind_ul", "ind_ll")))
+
+pe_data.wide = pe_data.long %>% 
+  pivot_wider(names_from = "world", values_from = "pe_task") %>% 
+  mutate(a = ac + `a-c`, c = ac + `-ac`)
+
+uc_data = cleaned_data %>% filter(!is.na(uc_task)) %>% 
+  dplyr::select(prolific_id, id, relation, uc_task, utt.standardized, 
+                custom_response, cost.uc, RT.uc_task, starts_with("intended")) %>%
+  group_by(prolific_id, id) %>% 
+  mutate(utterance = uc_task, 
+         id = str_replace(id, "independent", "ind"), 
+         id = factor(id, levels = c("if1_hh", "if1_uh", "if1_u-Lh",
+                                    "if1_lh", "if2_hl", "if2_ul", "if2_u-Ll",
+                                    "if2_ll", "ind_hh", "ind_uh", "ind_hl",
+                                    "ind_ul", "ind_ll"))) %>% 
+  chunk_utterances() %>% rename(utt_type = utterance)
+```
+
+## Meta infos about participants' data
+
+```{r, meta, echo=FALSE}
+# total amount of time spent by participant
+df <- cleaned_data %>% group_by(prolific_id) %>% 
+  distinct_at(vars(c(prolific_id)), .keep_all = T) %>%
+  mutate(education=as_factor(education), gender=as_factor(gender))
+
+p <- df %>%
+  ggplot(aes(x=factor(0), y=timeSpent)) + 
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(shape=16, width=0.2) +
+  theme(legend.position="none") +
+  labs(x = "", y="timeSpent in min.") +
+  geom_hline(aes(yintercept = mean(df$timeSpent)), color="green")
+p
+df %>% group_by(prolific_id) %>%  
+  dplyr::select(prolific_id, timeSpent, age, gender, education) %>% 
+  summary()
+```
+
+```{r, message = F}
+n_trials_all = read_csv(here("data", "all-data.csv")) %>% 
+  filter(!is.na(uc_task)) %>% nrow()
+n_trials_cleaned = uc_data %>% nrow()
+print(paste(round(n_trials_cleaned/n_trials_all, 3)*100, '% of trials included'))
+```
+
+
+
+# Experimental Data
+
+## PE-Task Data
+
+95% bootstrap confidence intervals for PE-task estimates
+
+```{r}
+get_mean_estimates = function(data, i){
+  d2 <- data[i,]
+  return(mean(d2$pe_task))
+}
+
+N = 1000
+data_bootstrapped = group_map(
+  pe_data.long %>% group_by(id, relation, world), function(df.grp, grp){
+    samples <- boot(df.grp, statistic = get_mean_estimates, R=N)$t %>% sort()
+    tibble(x_hat = list(samples), 
+           lower = samples[round(0.025*N)], 
+           upper = samples[round(0.975*N)],
+           id = grp$id, relation = grp$relation, world = grp$world)
+  }) %>% bind_rows() 
+```
+
+Plot Mean estimates PE-task data
+
+```{r}
+pe_task.means =  pe_data.long %>% group_by(id, relation, world) %>% 
+  summarize(pe_task = mean(pe_task), .groups = "drop_last")
+
+p.means_pe = pe_task.means %>% 
+  ggplot(aes(x = id,  color = world, group = world)) +
+  geom_point(aes(y = pe_task)) + geom_line(aes(y = pe_task)) +
+  geom_errorbar(data = data_bootstrapped, aes(ymin = lower, ymax = upper)) +
+  facet_wrap(relation ~ world, scales = "free_x", ncol = 4, labeller = label_both) +
+  labs(y = "Mean estimates across participants", x = "condition (trial)")
+p.means_pe
+ggsave(paste(plot_dir, "mean-estimates-pe-task.png", sep = FS), 
+       p.means_pe, width = 14, height = 9)
+```
+
+If1-trials: Estimates for world ¬ac
+
+```{r}
+pe.if1 = pe_data.long %>% group_by(id, relation, world) %>% 
+  filter(relation == "if1")
+
+# world ¬ac 
+df.world_c = pe.if1 %>% filter(world == "-ac") %>%
+  group_by(id) %>% 
+  dplyr::select(prolific_id, id, pe_task) %>% 
+  arrange(pe_task) %>% 
+  mutate(idx = row_number()) 
+
+# take max. number of participants per trials (dont vary much)
+N_subjs = df.world_c %>% dplyr::count() %>% pull(n) %>% max()
+ratios = tibble(props = c(0.5, 0.66, 0.75), N = N_subjs) %>% 
+  mutate(idx = props * N)
+  
+df.world_c %>% 
+  ggplot(aes(x = idx)) + 
+  geom_point(aes(y = pe_task, color = id, group = id)) +
+  geom_line(aes(y = pe_task, color = id, group = id)) + 
+  geom_vline(data = ratios, aes(xintercept = idx)) +
+  geom_text(data = ratios, aes(x = idx - 3, y = 0.8, label = props)) +
+  labs(x = "index participant", title = expression('P(w'["¬ac"]*')'))
+```
+
+
+
+### check whether same conditions (same mechanisms edge or ball) rated approx. equal across relations
+
+Intended probabilities
+1. Intended prob: low, cause: ball (horizontal)
+
+```{r}
+low_ball = pe_data.wide %>% 
+  filter(id %in% c("ind_ul", "ind_ll", "ind_hl", "if2_ll")) %>% 
+  mutate(p = case_when(relation == "independent" ~ c, T ~ a))
+low_ball %>% ggplot(aes(x = p, color = id)) + geom_density() +
+  labs(title = "estimated marginal (intended:low, cause: ball)")
+low_ball %>% ggplot(aes(x = id, y = p)) + geom_boxplot() +
+    labs(title = "estimated marginal (intended:low, cause: rolling ball)")
+```
+
+2. Intended prob: high, cause: edge (vertical)
+
+```{r}
+high_edge = pe_data.wide %>% 
+  filter(id %in% c("ind_hh", "if1_hh")) %>% 
+  mutate(p = case_when(relation == "independent" ~ c, 
+                       str_detect(relation, "if") ~ a))
+high_edge %>% ggplot(aes(x = p, color = id)) + geom_density() +
+  labs(title = "estimated marginal (intended:high, cause: edge)")
+high_edge %>% ggplot(aes(x = id, y = p)) + geom_boxplot() +
+    labs(title = "estimated marginal (intended:high, cause: edge)")
+```
+
+3. Intended prob: uncertain, cause: edge (horizontal)
+
+```{r}
+unc_edge = pe_data.wide %>% 
+  filter(id %in% c("ind_uh", "if1_u-Lh", "if1_uh")) %>% 
+  mutate(p = a)
+unc_edge %>% ggplot(aes(x = p, color = id)) + geom_density() +
+  labs(title = "estimated marginal (intended:unc, cause: edge (horiz))")
+unc_edge %>% ggplot(aes(x = id, y = p)) + geom_boxplot() +
+    labs(title = "estimated marginal (intended:unc, cause: edge (horiz))")
+```
+
+
+4. Intended prob: high, cause: ball (vertical)
+
+```{r}
+high_ball = pe_data.wide %>% 
+  filter(id %in% c("ind_uh", "ind_hh", "if2_hl")) %>% 
+  mutate(p = case_when(id == "ind_uh" ~ c, 
+                       id == "ind_hh" | id == "if2_hl" ~ a))
+
+high_ball %>% ggplot(aes(x = p, color = id)) + geom_density() +
+  labs(title = "estimated marginal (intended:high, cause: ball (vertical))")
+high_ball %>% ggplot(aes(x = id, y = p)) + geom_boxplot() +
+    labs(title = "estimated marginal (intended:high, cause: ball (vertical))")
+```
+
+
+## UC-Task Data
+### Custom responses
+
+```{r, custom-responses, fig.height = 10, fig.width = 10}
+# Nb of custom responses
+dat.custom = uc_data %>% filter(!is.na(custom_response)) %>% 
+  mutate(custom_response = tolower(custom_response))
+
+total = uc_data %>% dplyr::select(prolific_id, id)
+nb_custom_responses = nrow(dat.custom)
+ratio_trials = nb_custom_responses / nrow(total)
+print(paste('nb total custom responses given:', nrow(dat.custom), 'out of', 
+            nrow(total), '(', ratio_trials, ')'))
+
+# how many participants gave custom responses?
+n_subjs = dat.custom %>% group_by(prolific_id) %>% n_groups()
+N = uc_data %>% group_by(prolific_id) %>% n_groups()
+ratio_subjs = n_subjs / N
+print(paste('nb participants who gave custom response:', round(ratio_subjs, 3)))
+
+# filter out those where custom responses exactly the same as selected response
+dat.custom_different = dat.custom %>% 
+  filter(uc_task != tolower(custom_response)) %>% 
+  dplyr::select(prolific_id, id, custom_response, uc_task, utt.standardized) %>%
+  group_by(custom_response) %>% 
+  mutate(id = str_replace(id, "independent", "ind")) %>% 
+  mutate(n = n()) 
+
+write_csv(dat.custom_different %>% dplyr::select(-prolific_id, -utt.standardized), 
+          paste(result_dir, "custom_responses.csv", sep = FS))
+
+plot_custom_responses = function(df) {
+  p <- df %>% 
+    ggplot(aes(x = n, y = fct_rev(fct_infreq(custom_response)))) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    theme(text = element_text(size = 20),
+          axis.text.x=element_text(angle = 45, vjust = 0.5)) +
+    facet_wrap(~id, scales="free_x", ncol = 3) +
+    labs(x="count", y="custom response", title="custom responses")
+  return(p)
+}
+plot_custom_responses(dat.custom_different %>% filter(n > 1)) 
+# all custom responses
+dat.custom_different %>% dplyr::select(custom_response, uc_task, n)
+```
+
+### Custom responses Group 1 (different wording)
+
+```{r}
+# 1. and -> but
+df.and_but = dat.custom %>% 
+  filter(str_detect(uc_task, "and") &
+           str_detect(custom_response, "but") & 
+           !str_detect(custom_response, "might")) %>% 
+  dplyr::select(prolific_id, id, uc_task, custom_response)
+
+subjs = df.and_but$prolific_id %>% unique()
+# check trial number for these cases
+left_join(df.and_but, 
+          cleaned_data %>% filter(human_exp2 == 1)  %>%
+            dplyr::select(prolific_id, id, trial_nb_uc, uc_task, custom_response),
+          by = c("prolific_id", "id"))
+
+# 2. conditional -> cause
+df.if_cause = dat.custom %>% filter(str_detect(custom_response, "cause"))
+df.if_cause
+
+df.if_make = dat.custom %>% filter(str_detect(custom_response, "make"))
+df.if_make
+
+# 3. conditional + might
+df.if_might = dat.custom %>% filter(str_detect(custom_response, "might") & 
+                                      str_detect(custom_response, "if"))
+df.if_might
+```
+### Custom responses: in which trials?
+
+```{r}
+df = dat.custom_different %>% get_controlled_factors() %>% 
+  group_by(relation, prior_blue, prior_green) %>% 
+  dplyr::count() %>% arrange(n) %>% group_by(relation) %>% 
+  mutate(N_rel = sum(n), 
+         ratio = round(n / N_rel, 2),
+         relation = str_replace(relation, "ind", "independent"))
+df
+
+df.rel = df %>% distinct_at(vars(c(relation, N_rel)))
+df.rel
+df.rel %>%
+  ggplot(aes(x = relation)) +
+  geom_bar(aes(y = N_rel), stat = "identity") +
+  geom_bar(data = df %>% unite("priors", c(prior_blue, prior_green), sep="-"),
+           aes(y = n, fill = priors), stat = "identity") +
+  labs(x = "relation condition trials", y = "Number custom responses")
+
+p.custom_response_by_rel = df.rel %>%
+  ggplot(aes(x = relation)) +
+  geom_bar(aes(y = N_rel), stat = "identity") +
+  labs(x = "relation condition trials", y = "Number custom responses")
+p.custom_response_by_rel
+```
+
+## Selection frequencies of each utterance in UC-task
+
+Across participants
+
+```{r}
+df.utt_freq = uc_data %>% 
+  dplyr::select(prolific_id, id, utt.standardized, utt_type) %>% 
+  group_by(utt.standardized, utt_type) %>% dplyr::count() %>% arrange(n)
+df.utt_freq
+df.utt_freq$utt_f = factor(df.utt_freq$utt.standardized, 
+                           levels = df.utt_freq$utt.standardized)
+
+p.utt_freq = df.utt_freq %>% ggplot(aes(y = utt_f, x = n)) + 
+  geom_bar(aes(fill = utt_type), stat = "identity") +
+  scale_fill_brewer(name = "utterance type", palette = "Set2") +
+  geom_text(aes(label = n), hjust = -0.2) +
+  labs(y = "utterance", x = "number selections")
+p.utt_freq
+ggsave(paste(plot_dir, "utterance-frequencies.png", sep = FS), p.utt_freq, 
+       width = 10, height = 6)
+```
+
+By participants
+
+```{r}
+df.utt_freq.by_subj = uc_data %>%
+  dplyr::select(prolific_id, id, utt.standardized, utt_type) %>% 
+  group_by(prolific_id, utt.standardized, utt_type) %>% 
+  summarize(n = n(), .groups = "drop") %>%
+  group_by(prolific_id) %>% 
+  mutate(ratio = n / sum(n))
+
+df.utt_freq.by_subj$subj = df.utt_freq.by_subj %>% group_indices()
+p.utt_freq_by_subj  = df.utt_freq.by_subj %>% group_by(subj) %>% 
+  ggplot() +
+  geom_bar(aes(y = utt.standardized, x = n, fill = utt_type), stat = "identity") +
+  theme_bw(base_size=18) +
+  facet_wrap(~subj, labeller = label_both) + 
+  theme(legend.position = "top") +
+  scale_fill_discrete(name = "utterance type") + 
+  labs(x = "count") +
+  ggtitle("utterance frequencies per participant")
+p.utt_freq_by_subj
+ggsave(paste(plot_dir, "utterance-frequencies-by-subj.png", sep = FS), 
+       p.utt_freq_by_subj, width=18, height=35)
+```
+
+Standardized and realized utterances
+
+```{r}
+df = uc_data %>% group_by(utt.standardized, utt_type, uc_task) %>% 
+  summarize(n = n(), .groups = "drop_last")
+df %>% filter(utt.standardized == "both blocks fall")
+```
+
+
+
+When did participants choose conditionals?
+
+```{r}
+df.if = uc_data %>% filter(utt_type == "conditional") %>% 
+  group_by(id, utt.standardized, uc_task) %>% 
+  dplyr::count() %>% arrange(desc(n))
+
+df.if.standardized =  df.if %>% group_by(id, utt.standardized) %>% 
+  summarize(n = sum(n), .groups = "drop") %>% arrange(desc(n))
+positions_ids = df.if.standardized$id %>% unique()
+p.ifs.standardized = df.if.standardized %>% 
+  ggplot(aes(y = n, x = id, fill = utt.standardized)) +
+  geom_bar(stat = "identity") +
+  labs(x = "condition (trial)", y = "count") + 
+  scale_x_discrete(limits = positions_ids) +
+  scale_fill_brewer(name = "", palette = "Set2") +
+  guides(fill = guide_legend(ncol=3))
+p.ifs.standardized
+ggsave(paste(plot_dir, "conditionals-uc-task.png", sep=FS), p.ifs.standardized,
+       width = 9, height = 6)
+
+df.if %>% group_by(utt.standardized) %>% 
+  summarize(n = sum(n), .groups = "drop_last") %>% arrange(desc(n))
+```
+
+Most often case: "If blue falls, green falls"
+What are the original, non-standardized responses for these cases?
+
+```{r}
+# collapse data 'if blue, green' and 'if blue green as well'
+df.if_bg_orig = df.if %>% filter(utt.standardized == "if blue falls green falls") %>% 
+  mutate(uc_task = str_trim(str_replace(uc_task, "as well", ""), side = "both"),
+         uc_task = case_when(uc_task == "if the blue block falls the green block falls" ~ 
+                               "if the blue block falls the green block falls (as well)",
+                             T ~ uc_task)) %>% 
+  group_by(uc_task, id) %>% summarize(n = sum(n), .groups = "drop_last") %>% 
+  arrange(desc(n))
+
+positions_ids = df.if_bg_orig$id %>% unique()
+p.ifs = df.if_bg_orig %>% 
+  ggplot(aes(y = n, x = id, fill = uc_task)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(x = "condition (trial)", y = "count") + 
+  scale_x_discrete(limits = positions_ids) +
+  scale_fill_brewer(name = "", palette = "Set2") +
+  guides(fill = guide_legend(ncol=1))
+p.ifs
+```
+
+
+
+Utterance cost by participants
+
+```{r}
+df.cost = uc_data %>% dplyr::select(prolific_id, id, cost.uc, utt_type)
+df.avg_cost <- df.cost %>% group_by(prolific_id) %>%
+  summarize(cost.uc = mean(cost.uc), .groups = "drop_last")
+
+df.avg_cost %>% 
+  ggplot(aes(x = cost.uc)) + geom_histogram(bins = 10) +
+  scale_x_continuous(breaks = round(seq(min(df.cost$cost.uc), 
+                                        max(df.cost$cost.uc), by = 0.5), 1)) +
+  labs(x = "average cost (nb of clicks to create utterance) by participant", y ="count")
+```
+
+Utterance cost for each utterance and utterance type
+
+```{r}
+df.cost_by_utt = uc_data %>% 
+  dplyr::select(prolific_id, id, cost.uc, utt_type, utt.standardized, uc_task) %>%
+  group_by(utt_type, cost.uc) %>% 
+  summarize(n = n(), .groups = "drop_last") %>% 
+  arrange(cost.uc) %>% mutate(cost.uc = factor(cost.uc, levels = seq(2, 7)))
+df.cost_by_utt %>% arrange(utt_type, cost.uc)
+```
+
+Which conjunctions chosen? Correlated with their cost?
+
+```{r}
+df.cost = uc_data %>% 
+  mutate(cost.uc = factor(cost.uc, levels = seq(2, 7))) %>% 
+  group_by(uc_task, utt.standardized, utt_type, cost.uc) %>% dplyr::count()
+
+p.conj_vs_cost = df.cost %>% 
+  filter(utt.standardized %in% 
+           c(standardized.sentences$bg, standardized.sentences$none)) %>%
+  ggplot(aes(x=n, y = uc_task, fill = cost.uc)) + 
+  geom_bar(stat = "identity") + facet_wrap(~utt.standardized, scales = "free_y") +
+  scale_fill_brewer(name = "utterance cost", palette = 'OrRd') +
+  geom_text(aes(label = n), hjust = 1) +
+  labs(x = "number selections", y = "selected utterance")
+p.conj_vs_cost
+ggsave(paste(plot_dir, "p_conj_vs_cost.png", sep = FS), p.conj_vs_cost, 
+       width = 14, height = 5)
+
+df = df.cost %>% group_by(utt_type, utt.standardized, cost.uc) %>% 
+  summarize(n = sum(n), .groups = "drop_last") %>% arrange(desc(n))
+df$utt_f = factor(df$utt.standardized, levels = c(df$utt.standardized %>% unique()))
+  
+df %>% ggplot(aes(x=n, y = utt_f, fill = cost.uc)) + 
+  geom_bar(stat = "identity") + 
+  facet_wrap(~utt_type, scales = "free_y") +
+  scale_fill_brewer(name = "utterance cost", palette = 'OrRd') +
+  labs(x = "number selections", y = "selected utterance (standardized)") +
+  guides(fill = guide_legend(nrow = 1))
+
+
+# dependent cases: both fall, neither falls, if blue green, if not blue not green
+df.dep_cost = uc_data %>%
+  mutate(cost.uc = factor(cost.uc, levels = seq(2, 7))) %>% 
+  filter(relation != "independent" &
+           utt.standardized %in% 
+            c(standardized.sentences$bg, standardized.sentences$none))
+
+df.dep_cost.sum = df.dep_cost %>% 
+  group_by(utt.standardized, utt_type, cost.uc, uc_task) %>% 
+  summarize(n = n(), .groups = "drop_last") %>% arrange(desc(n))
+df.dep_cost.sum$utt_f = factor(df.dep_cost.sum$utt.standardized, 
+                           levels = c(df.dep_cost.sum$utt.standardized %>% unique()))
+  
+p.dep_cost = df.dep_cost.sum %>% 
+  ggplot(aes(x=n, y = utt_f, fill = cost.uc)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_brewer(name = "utterance cost (number of clicks)", palette = 'OrRd') +
+  labs(x = "number selections", y = "selected utterance (standardized)") +
+  guides(fill = guide_legend(nrow = 1))
+p.dep_cost
+
+
+ggsave(paste(plot_dir, "dep_cost.png", sep = FS), p.dep_cost, width = 6, height = 3)
+```
+
+# Joint Data from PE- and UC-task
+
+Utterance choices vs. trial-conditions (intended prior probabilities)
+
+```{r}
+p_utts_vs_intended_probs = uc_data %>% 
+  group_by(relation, intended_pa, intended_pc, utt_type) %>% 
+  summarize(count = n(), .groups = "drop_last") %>% 
+  mutate(frequency = count / sum(count)) 
+
+# dependent trials
+p_utts_vs_intended_probs %>% filter(relation != "independent") %>%  
+  ggplot(aes(x = intended_pa, y = frequency, color = utt_type, group = utt_type)) + 
+  geom_point() + geom_line() +
+  facet_wrap(~relation, labeller = label_both)
+
+# independent trials
+p_utts_vs_intended_probs %>% filter(relation == "independent") %>%  
+  ggplot(aes(x = intended_pa, y = frequency, color = utt_type, group = utt_type)) + 
+  geom_point() + geom_line() +
+  facet_wrap(~intended_pc, labeller = label_both, scales = "free_x")
+```
+
+
+
+
+Utterance choices vs. probabilities from PE-task
+
+```{r}
+pe_uc_data = left_join(
+  pe_data.wide %>% dplyr::select(-prior_blue, -prior_green),
+  uc_data %>% dplyr::select(-custom_response, -cost.uc, -RT.uc_task)
+) %>% rename(bg = ac, b = `a-c`, g = `-ac`, none = `-a-c`) %>% 
+  add_probs() %>% rename(ac = bg, `a-c` = `b`, `-ac` = g, `-a-c` = none) %>% 
+  compute_utt_probs() %>% dplyr::select(-starts_with("p_")) %>% 
+  mutate(relation = factor(relation, levels = c("if1", "if2", "independent")))
+
+# utterance selected less than twice
+utts_remove = df.utt_freq %>% filter(n <= 1) %>% pull(utt.standardized)
+df = pe_uc_data %>% filter(!utt.standardized %in% utts_remove)
+# utterance for given relation selected less than twice
+trials_remove = df %>% group_by(relation, utt.standardized) %>% 
+  dplyr::count() %>% arrange(n) %>% filter(n <= 1)
+df = anti_join(df, trials_remove)
+
+# order facets according to selection frequency
+df$utt_f = factor(df$utt.standardized, levels = 
+                    c(standardized.might, standardized.lit, 
+                      standardized.conj, standardized.sentences$if_bg,
+                      standardized.sentences$if_nbng))
+
+p.pe_vs_utts = df %>% 
+  ggplot(aes(x = pe_selected_utt)) + 
+  geom_density(aes(color = relation)) + geom_rug(aes(color = relation)) + 
+  facet_wrap(~utt_f, scales = "free_y", labeller = label_wrap_gen(width = 26)) +
+  scale_color_brewer(name = "relation", palette = "Set2") +
+  labs(x = "Probability estimate of described event")
+p.pe_vs_utts
+ggsave(paste(plot_dir, "pe_vs_utts_all.png", sep = FS), p.pe_vs_utts,
+       width = 9, height = 6)
+
+```
+
+utterance selection frequencies depending on relation
+
+```{r}
+df.utt_freq_by_rel = uc_data %>% ungroup() %>% 
+  dplyr::select(prolific_id, relation, utt.standardized, utt_type) %>% 
+  group_by(relation, utt.standardized, utt_type) %>% dplyr::count() %>% 
+  arrange(n) %>% 
+  mutate(relation = factor(relation, levels = c("if1", "if2", "independent")))
+```
+
+```{r}
+# just plot densities for utterances that are selected at least 5 times in the 
+# corresponding relation condition
+trials_remove = df.utt_freq_by_rel %>% group_by(relation) %>% 
+  mutate(N = sum(n), ratio = round(n / N, 2) * 100) %>% 
+  filter(n < 5) %>% dplyr::select(relation, utt.standardized, utt_type, n)
+xtable(trials_remove)
+
+df = anti_join(pe_uc_data, trials_remove)
+df.levels = anti_join(df.utt_freq_by_rel, trials_remove) %>% arrange(desc(n))
+df$utt_fct = factor(df$utt.standardized, 
+                    levels = df.levels$utt.standardized %>% unique())
+  
+p.pe_vs_utts.filtered = df %>% 
+  ggplot(aes(x = pe_selected_utt)) + 
+  geom_density(aes(color = relation)) + geom_rug(aes(color = relation)) + 
+  facet_wrap(~utt_fct, scales = "free_y", labeller = label_wrap_gen(width = 26)) +
+  scale_color_brewer(name = "relation", palette = "Set2") +
+  labs(x = "Probability estimate of described event")
+p.pe_vs_utts.filtered
+ggsave(paste(plot_dir, "pe_vs_utts_filtered.png", sep = FS), 
+       p.pe_vs_utts.filtered, width = 9, height = 6)
+
+# number of data points excluded:
+n_ex = nrow(pe_uc_data) - nrow(df)
+print(paste("nb of excluded data points:", n_ex))
+```
+
+Summary mean PE-estimates for each selected utterance
+
+```{r}
+df.means_pe_utts = pe_uc_data %>% group_by(utt.standardized, utt_type) %>%
+  summarize(mean_pe = mean(pe_selected_utt), .groups = "drop_last") %>% 
+  arrange(desc(mean_pe))
+
+df.summary_pe_values = left_join(
+  df.means_pe_utts,
+  df.utt_freq %>% ungroup() %>% dplyr::select(utt.standardized, n)
+) %>% arrange(desc(n))
+
+df.summary_pe_values
+# xtable(df.summary_pe_values)
+df.summary_pe_values %>% filter(utt_type == "conjunction")
+```
+
+
+Plot means with
+95%-Bootstrapped confidence intervals for pe-task estimate of selected utterance
+
+```{r}
+get_mean_estimates = function(data, i){
+  d2 <- data[i,]
+  return(mean(d2$pe_selected_utt))
+}
+
+N = 1000
+data_bootstrapped_pe_uc = group_map(
+  pe_uc_data %>% group_by(relation, utt.standardized), function(df.grp, grp){
+    samples <- boot(df.grp, statistic = get_mean_estimates, R=N)$t %>% sort()
+    tibble(x_hat = list(samples), 
+           lower = samples[round(0.025*N)], 
+           upper = samples[round(0.975*N)],
+           relation = grp$relation, utt.standardized = grp$utt.standardized)
+  }) %>% bind_rows() %>% mutate(utterance = utt.standardized) %>% 
+  chunk_utterances() %>% rename(utt_type = utterance) %>% 
+  mutate(relation = factor(relation, levels = c("if1", "if2", "independent")))
+```
+
+```{r}
+df.means_pe_utts.by_rel = pe_uc_data %>% 
+  group_by(utt.standardized, utt_type, relation) %>%
+  summarize(mean_pe = mean(pe_selected_utt), .groups = "drop_last") %>% 
+  arrange(desc(mean_pe)) %>% 
+  mutate(relation = factor(relation, levels = c("if1", "if2", "independent")))
+
+# selections of utterances
+df.means_pe_utts.by_rel %>% filter(utt.standardized == "if blue falls green falls")
+df.means_pe_utts.by_rel %>% filter(utt.standardized == "blue might fall" & relation == "if2")
+df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$bg)
+df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$none)
+df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$b)
+df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$g)
+
+
+p.pe_means_pe_utts = df.means_pe_utts.by_rel %>% 
+  ggplot(aes(y = utt.standardized, color = relation)) + 
+  geom_point(aes(x = mean_pe),
+             position = position_dodge(width=0.5)) + 
+  facet_wrap(~utt_type, scales = "free_y", labeller = label_wrap_gen(width = 26)) +
+  geom_errorbar(data = data_bootstrapped_pe_uc, 
+                aes(xmin = lower, xmax = upper), 
+                position = position_dodge(width = 0.5)) +
+  geom_text(data = df.utt_freq_by_rel, aes(x = 0.1, label = n), 
+            position = position_dodge(width=0.5)) +
+  scale_color_brewer(name = "relation", palette = "Set2") +
+  labs(x = "Mean estimate of probability for described event", 
+       y = "selected utterance")
+p.pe_means_pe_utts
+
+ggsave(paste(plot_dir, "pe_means_pe_utts.png", sep = FS), p.pe_means_pe_utts,
+       width = 10, height = 8)
+
+```
+
+
+Speaker's uncertainty about antecedent and consequent when saying 'if p, q'
+
+Do participants select 'if p, q' when P(p) estimated with 0 (or with 1)?
+
+```{r}
+df = pe_uc_data %>% 
+  mutate(na = `-ac` + `-a-c`, nc = `a-c` + `-a-c`) %>% 
+  dplyr::select(prolific_id, id, relation, a, c, na, nc,
+                uc_task, utt_type, utt.standardized) %>%
+  mutate(p_ant = case_when(startsWith(utt.standardized, "if blue falls") |
+                           startsWith(utt.standardized, "if blue does not fall") ~ a,
+                           startsWith(utt.standardized, "if green falls") |
+                           startsWith(utt.standardized, "if green does not fall") ~ c),
+                           
+         p_cons = case_when(endsWith(utt.standardized, "blue falls") |
+                            endsWith(utt.standardized, "blue does not fall") ~ a,
+                            endsWith(utt.standardized, "green falls") |
+                            endsWith(utt.standardized, "green does not fall") ~ c))
+
+
+# estimates where P(antecedent) undefined or 0 but conditional selected
+df %>% filter(utt_type == "conditional") %>%  filter(is.na(p_ant) | p_ant == 0)
+# estimates where P(antecedent)=1 but conditional selected
+df %>% filter(utt_type == "conditional") %>% filter(p_ant == 1)
+
+# only consider conditional `if blue falls green falls' for relations where s
+# elected more than twice
+to_remove = df.utt_freq_by_rel %>% 
+  filter(utt.standardized == standardized.sentences$if_bg & n <= 2)
+
+df.ifbg = df %>% filter(utt.standardized == standardized.sentences$if_bg) 
+p.ant_vs_cons_ifbg = anti_join(df.ifbg, to_remove) %>%  
+  ggplot(aes(x = p_ant, y = p_cons)) + 
+  geom_density_2d_filled(contour_var = "ndensity") +
+  geom_point(alpha = 0.5) + xlim(0, 1) + ylim(0, 1) +
+  facet_wrap(relation~utt.standardized, 
+             labeller = label_wrap_gen(width = 26)) +
+  labs(x = "Estimate P(blue falls)", y = "Estimate P(green falls)")
+p.ant_vs_cons_ifbg
+
+ggsave(paste(plot_dir, "pant_vs_pcons.png", sep = FS), p.ant_vs_cons_ifbg, 
+       width = 7, height = 5)
+
+# sanity-check: range of estimates for P(blue) and P(green) includes
+# values < 0.5 for dependent trials?
+delta05 = 0
+df.greater = df %>% filter(relation != "independent") %>%  filter(a > 0.5 + delta05)
+df.greater_ifbg = df.greater %>% filter(utt.standardized == standardized.sentences$if_bg) 
+print(paste(nrow(df.greater), "times > 0.5 + ", delta05))
+print(paste(round(nrow(df.greater_ifbg)/nrow(df.greater), 3), "when P(blue)>0.5+delta if blue green selected"))
+
+df.lower = df %>% filter(relation != "independent") %>%  filter(a < 0.5 - delta05)
+print(paste(nrow(df.lower), "times < 0.5 + ", delta05))
+df.lower_ifbg = df.lower %>% filter(utt.standardized == standardized.sentences$if_bg) 
+print(paste(round(nrow(df.lower_ifbg) / nrow(df.lower), 3), "when P(blue)<0.5-delta if blue green selected"))
+
+print(paste(round(nrow(df.greater) / nrow(df.lower), 3), 
+            "nb cases P(blue)> 0.5 +", delta05, "/ nb cases P(blue)<0.5 -", delta05))
+
+
+```
+
+
+
+
+
+# Training Data
+
+Slider-Choice Trials (used to check whether participants understood how sliders
+are to be interpreted)
+
+```{r}
+data.train.sliders = read_csv(paste(result_dir, "train-slider-choice.csv", sep=FS))
+dat.sliders = data.train.sliders %>%
+  mutate(correct = response == expected, .groups="drop_last")
+  
+# ratio correct per participant
+dat.sl.participants = dat.sliders %>% group_by(prolific_id) %>%
+  summarize(ratio_correct=sum(correct)/n(), .groups="drop_last")
+
+p = dat.sl.participants %>% 
+  ggplot(aes(x = ratio_correct)) +
+  scale_x_continuous(breaks = c(seq(0.5, 1, by=0.1))) +
+  geom_bar() + labs(y = "number participants", x = "proportion correct")
+p
+dat.sl.participants %>% group_by(ratio_correct) %>% dplyr::count() %>% 
+  ungroup() %>% mutate(ratio = round(n / sum(n), 2))
+
+# ratio correct per id (difficulty slider-choice trials)
+df.sliders = dat.sliders %>% group_by(id) %>% 
+  summarize(ratio_correct = sum(correct) / n(), .groups="drop_last") %>%
+  arrange(desc(ratio_correct)) %>%
+  mutate(id = as_factor(id))
+  
+df.sliders %>%
+  ggplot(aes(y=id, x=ratio_correct)) +
+  geom_point() +
+  labs(x="ratio participants who gave correct response")
+```  
+
+
+# Other Plots
+
+Reaction Times per stimulus
+
+```{r, reaction-times, echo=FALSE}
+df <- uc_data %>% dplyr::select(prolific_id, id, RT.uc_task) %>% group_by(id)
+TRIALS = df$id %>% unique()
+
+dat.RT = df %>% group_by(id) %>% 
+  summarise(mu = mean(RT.uc_task), sd = sd(RT.uc_task), .groups="drop_last")
+df <- left_join(df, dat.RT, by="id")
+
+for(pa in seq(1,2)) {
+  p <- df %>%  
+    ggplot(aes(y = RT.uc_task)) + geom_boxplot(outlier.shape = NA) +
+    geom_jitter(aes(x = 0, color = prolific_id), width = 0.1, alpha = 0.5) +
+    geom_hline(aes(yintercept = mu), color="green", linetype="dashed") +
+    theme(legend.position="right", 
+          axis.ticks.x = element_blank(), axis.text.x = element_blank()) +
+    labs(x = "", y = "RT in ms", title = "Reaction Times per stimulus") +
+    facet_wrap_paginate(~id, nrow = 2, ncol = 5, page = pa) +
+    scale_y_continuous(trans = log2_trans(),
+                       breaks = trans_breaks("log2", function(x) 2^x),
+                       labels = trans_format("log2", math_format(2^.x))) +
+    theme(legend.position="none")
+  print(p)
+}
+```
+
+
+

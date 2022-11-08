@@ -23,25 +23,17 @@ labels.test = c(bg = "Blue and Green", b = "Blue and ¬Green",
                 g =" ¬Blue and Green", none = "¬Blue and ¬Green")
 
 # Other -------------------------------------------------------------------
-# ordered by informativity
-levels.responses = rev(c(
-  standardized.sentences$bg, standardized.sentences$none,
-  standardized.sentences$g, standardized.sentences$b,
-  standardized.sentences$only_b, standardized.sentences$only_g,
-  standardized.sentences$only_nb, standardized.sentences$only_ng,
-  standardized.sentences$if_bg, standardized.sentences$if_gb, 
-  standardized.sentences$if_nbng, standardized.sentences$if_ngnb,
-  standardized.sentences$if_bng, standardized.sentences$if_gnb,
-  standardized.sentences$if_nbg, standardized.sentences$if_ngb,
-  standardized.sentences$might_b, standardized.sentences$might_g,
-  standardized.sentences$might_nb, standardized.sentences$might_ng
-))
-
 standardized.conj = c(standardized.sentences$bg, standardized.sentences$b,
                       standardized.sentences$g, standardized.sentences$none)
 standardized.lit = c(standardized.sentences$only_b, standardized.sentences$only_g,
                      standardized.sentences$only_nb, standardized.sentences$only_ng)
-standardized.ifs = levels.responses[str_detect(levels.responses, "if")]
+standardized.ifs = c(standardized.sentences$if_bg, standardized.sentences$if_gb, 
+                     standardized.sentences$if_nbng, standardized.sentences$if_ngnb,
+                     standardized.sentences$if_bng, standardized.sentences$if_gnb,
+                     standardized.sentences$if_nbg, standardized.sentences$if_ngb)
+standardized.might = c(standardized.sentences$might_b, standardized.sentences$might_g,
+                      standardized.sentences$might_nb, standardized.sentences$might_ng)
+
 
 save_train_data = function(train_data, target_dir){
   write_csv(train_data$train.slider_choice,

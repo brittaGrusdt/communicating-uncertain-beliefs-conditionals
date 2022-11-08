@@ -182,7 +182,7 @@ standardize_color_groups_exp2 <- function(df){
 
 # @arg df: data frame containing columns bg, b, g, none
 add_probs <- function(df){
-  df <- df %>% mutate(p_a=bg+b, p_c=bg+g, p_na=g+none, p_nc=b+none) %>%
+  df <- df %>% mutate(p_a = bg+b, p_c = bg+g, p_na = g+none, p_nc = b+none) %>%
     mutate(p_c_given_a = bg / p_a,
            p_c_given_na = g / p_na,
            p_a_given_c = bg / p_c, 
@@ -192,9 +192,9 @@ add_probs <- function(df){
            p_na_given_c = g/p_c,
            p_na_given_nc = none/p_nc,
            p_likely_a = p_a,
-           p_likely_na=p_na,
+           p_likely_na = p_na,
            p_likely_c = p_c,
-           p_likely_nc=p_nc
+           p_likely_nc = p_nc
     )
   return(df)
 }
@@ -525,27 +525,35 @@ join_pe_uc_data = function(pe_data, uc_data){
   return(joint_data)
 }
 
-# compute_utt_probs = function(observations){
-#   observations %>%
-#     mutate(p_utt_obs = case_when(utt_observed %in% c("A", "might A") ~ AC + `A-C`, 
-#                                  utt_observed %in% c("-A", "might -A") ~ `-AC` + `-A-C`,
-#                                  utt_observed %in% c("C", "might C") ~ `AC` + `-AC`, 
-#                                  utt_observed %in% c("-C", "might -C") ~ `A-C` + `-A-C`,
-#                                  utt_observed == "C and A" ~  `AC`,
-#                                  utt_observed == "C and -A" ~ `-AC`,
-#                                  utt_observed == "-C and A" ~ `A-C`,
-#                                  utt_observed == "-C and -A" ~ `-A-C`,
-#                                  
-#                                  utt_observed == "A > C" ~  AC / (AC + `A-C`),
-#                                  utt_observed == "C > A" ~  `AC` / (`AC` + `-AC`),
-#                                  utt_observed == "A > -C" ~ `A-C` / (AC + `A-C`),
-#                                  utt_observed == "-C > A" ~ `A-C` / (`A-C` + `-A-C`),
-#                                  
-#                                  utt_observed == "-A > C" ~ `-AC` / (`-AC` + `-A-C`),
-#                                  utt_observed == "C > -A" ~  `-AC` / (`AC` + `-AC`),
-#                                  utt_observed == "-A > -C" ~ `-A-C` / (`-AC` + `-A-C`),
-#                                  utt_observed == "-C > -A" ~ `-A-C` / (`A-C` + `-A-C`)
-#     ))
-# }
+compute_utt_probs = function(observations){
+  observations %>% 
+    mutate(pe_selected_utt = case_when(
+      #literals / might + literal
+      utt.standardized %in% c(standardized.sentences$only_b, 
+                              standardized.sentences$might_b) ~ p_a,
+      utt.standardized %in% c(standardized.sentences$only_nb, 
+                              standardized.sentences$might_nb) ~ p_na,
+      utt.standardized %in% c(standardized.sentences$only_g, 
+                              standardized.sentences$might_g) ~ p_c,
+      utt.standardized %in% c(standardized.sentences$only_ng, 
+                              standardized.sentences$might_ng) ~ p_nc,
+      # conjunctions
+      utt.standardized == standardized.sentences$bg ~ ac,
+      utt.standardized == standardized.sentences$b ~ `a-c`,
+      utt.standardized == standardized.sentences$g ~ `-ac`,
+      utt.standardized == standardized.sentences$none ~ `-a-c`,
+      
+      # conditionals
+      utt.standardized == standardized.sentences$if_bg ~ p_c_given_a,
+      utt.standardized == standardized.sentences$if_bng ~ p_nc_given_a,
+      utt.standardized == standardized.sentences$if_nbg ~ p_c_given_na,
+      utt.standardized == standardized.sentences$if_nbng ~ p_nc_given_na,
+      
+      utt.standardized == standardized.sentences$if_gb ~ p_a_given_c,
+      utt.standardized == standardized.sentences$if_gnb ~ p_na_given_c,
+      utt.standardized == standardized.sentences$if_ngb ~ p_a_given_nc,
+      utt.standardized == standardized.sentences$if_ngnb ~ p_na_given_nc
+      ))
+}
 
 
