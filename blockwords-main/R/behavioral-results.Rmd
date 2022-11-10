@@ -45,7 +45,6 @@ pe_data.long =  cleaned_data %>%
                             slider == "none" ~ "-a-c")) %>% 
   rename(world = slider) %>% 
   mutate(world = factor(world, levels = c("ac", "a-c", "-ac", "-a-c")), 
-                        #labels = c("ac", "a¬c", "¬ac", "¬a¬c")), 
          id = str_replace(id, "independent", "ind"),
          id = factor(id, levels = c("if1_hh", "if1_uh", "if1_u-Lh",
                                     "if1_lh", "if2_hl", "if2_ul", "if2_u-Ll",
@@ -119,7 +118,11 @@ data_bootstrapped = group_map(
            lower = samples[round(0.025*N)], 
            upper = samples[round(0.975*N)],
            id = grp$id, relation = grp$relation, world = grp$world)
-  }) %>% bind_rows() 
+  }) %>% bind_rows()  
+
+data_bootstrapped$world <- recode_factor(data_bootstrapped$world, 
+                                         `ac` = "ac", `a-c` = "a¬c", 
+                                        `-ac` = "¬ac", `-a-c` = "¬a¬c")
 ```
 
 Plot Mean estimates PE-task data
@@ -127,12 +130,30 @@ Plot Mean estimates PE-task data
 ```{r}
 pe_task.means =  pe_data.long %>% group_by(id, relation, world) %>% 
   summarize(pe_task = mean(pe_task), .groups = "drop_last")
-
+pe_task.means$world <- recode_factor(pe_task.means$world, 
+                                     `ac` = "ac", `a-c` = "a¬c", 
+                                     `-ac` = "¬ac", `-a-c` = "¬a¬c")
 p.means_pe = pe_task.means %>% 
   ggplot(aes(x = id,  color = world, group = world)) +
   geom_point(aes(y = pe_task)) + geom_line(aes(y = pe_task)) +
+  scale_x_discrete(labels = 
+                     c(`if1_hh` = parse(text = TeX('$If_1:HI$')),
+                       `if1_lh` = parse(text = TeX('$If_1:LI$')),
+                       `if1_u-Lh` = parse(text = TeX('$If_1:U^-I$')),
+                       `if1_uh` = parse(text = TeX('$If_1:UI$')),
+                       `if2_hl` = parse(text = TeX('$If_2:HL$')),
+                       `if2_ll` = parse(text = TeX('$If_2:LL$')),
+                       `if2_u-Ll` = parse(text = TeX('$If_2:U^-L$')),
+                       `if2_ul` = parse(text = TeX('$If_2:UL$')),
+                       `ind_hh` = 'ind:HH',
+                       `ind_uh` = 'ind:UH',
+                       `ind_hl` = 'ind:HL',
+                       `ind_ul` = 'ind:UL',
+                       `ind_ll` = 'ind:LL'
+                       )
+                     ) +
   geom_errorbar(data = data_bootstrapped, aes(ymin = lower, ymax = upper)) +
-  facet_wrap(relation ~ world, scales = "free_x", ncol = 4, labeller = label_both) +
+  facet_wrap(relation ~ world, scales = "free_x", ncol = 4) +
   labs(y = "Mean estimates across participants", x = "condition (trial)")
 p.means_pe
 ggsave(paste(plot_dir, "mean-estimates-pe-task.png", sep = FS), 
@@ -299,6 +320,7 @@ df.if_might = dat.custom %>% filter(str_detect(custom_response, "might") &
                                       str_detect(custom_response, "if"))
 df.if_might
 ```
+
 ### Custom responses: in which trials?
 
 ```{r}
@@ -397,7 +419,22 @@ p.ifs.standardized = df.if.standardized %>%
   ggplot(aes(y = n, x = id, fill = utt.standardized)) +
   geom_bar(stat = "identity") +
   labs(x = "condition (trial)", y = "count") + 
-  scale_x_discrete(limits = positions_ids) +
+  scale_x_discrete(limits = positions_ids, 
+                   labels = 
+                     c(`if1_hh` = parse(text = TeX('$If_1:HI$')),
+                       `if1_lh` = parse(text = TeX('$If_1:LI$')),
+                       `if1_u-Lh` = parse(text = TeX('$If_1:U^-I$')),
+                       `if1_uh` = parse(text = TeX('$If_1:UI$')),
+                       `if2_hl` = parse(text = TeX('$If_2:HL$')),
+                       `if2_ll` = parse(text = TeX('$If_2:LL$')),
+                       `if2_u-Ll` = parse(text = TeX('$If_2:U^-L$')),
+                       `if2_ul` = parse(text = TeX('$If_2:UL$')),
+                       `ind_hh` = 'ind:HH',
+                       `ind_uh` = 'ind:UH',
+                       `ind_hl` = 'ind:HL',
+                       `ind_ul` = 'ind:UL',
+                       `ind_ll` = 'ind:LL'
+                       )) +
   scale_fill_brewer(name = "", palette = "Set2") +
   guides(fill = guide_legend(ncol=3))
 p.ifs.standardized
@@ -570,7 +607,10 @@ p.pe_vs_utts = df %>%
   ggplot(aes(x = pe_selected_utt)) + 
   geom_density(aes(color = relation)) + geom_rug(aes(color = relation)) + 
   facet_wrap(~utt_f, scales = "free_y", labeller = label_wrap_gen(width = 26)) +
-  scale_color_brewer(name = "relation", palette = "Set2") +
+  scale_color_brewer(name = "relation", palette = "Set2", 
+                     labels = c(`if1` = parse(text = TeX('$If_1$')),
+                                `if2` = parse(text = TeX('$If_2$')),
+                                `independent` = 'ind')) +
   labs(x = "Probability estimate of described event")
 p.pe_vs_utts
 ggsave(paste(plot_dir, "pe_vs_utts_all.png", sep = FS), p.pe_vs_utts,
@@ -605,7 +645,10 @@ p.pe_vs_utts.filtered = df %>%
   ggplot(aes(x = pe_selected_utt)) + 
   geom_density(aes(color = relation)) + geom_rug(aes(color = relation)) + 
   facet_wrap(~utt_fct, scales = "free_y", labeller = label_wrap_gen(width = 26)) +
-  scale_color_brewer(name = "relation", palette = "Set2") +
+  scale_color_brewer(name = "relation", palette = "Set2", 
+                     labels = c(`if1` = parse(text = TeX('$If_1$')),
+                                `if2` = parse(text = TeX('$If_2$')),
+                                `independent` = 'ind')) +
   labs(x = "Probability estimate of described event")
 p.pe_vs_utts.filtered
 ggsave(paste(plot_dir, "pe_vs_utts_filtered.png", sep = FS), 
@@ -682,7 +725,10 @@ p.pe_means_pe_utts = df.means_pe_utts.by_rel %>%
                 position = position_dodge(width = 0.5)) +
   geom_text(data = df.utt_freq_by_rel, aes(x = 0.1, label = n), 
             position = position_dodge(width=0.5)) +
-  scale_color_brewer(name = "relation", palette = "Set2") +
+  scale_color_brewer(name = "relation", palette = "Set2", 
+                     labels = c(`if1` = parse(text = TeX('$If_1$')),
+                                `if2` = parse(text = TeX('$If_2$')),
+                                `independent` = 'ind')) +
   labs(x = "Mean estimate of probability for described event", 
        y = "selected utterance")
 p.pe_means_pe_utts
@@ -754,9 +800,6 @@ print(paste(round(nrow(df.greater) / nrow(df.lower), 3),
 
 
 ```
-
-
-
 
 
 # Training Data
