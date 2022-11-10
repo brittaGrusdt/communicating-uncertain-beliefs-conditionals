@@ -15,19 +15,6 @@ webppl_distrs_to_tibbles <- function(posterior){
   return(df)
 }
 
-structure_bns <- function(posterior, params){
-  data.long <- posterior$bns %>% rowid_to_column(var = "rowid") %>%
-    unnest(c(table.probs, table.support)) %>%
-    rename(val=table.probs, cell=table.support) %>%
-    add_column(bias=params$bias, level=params$level_max)
-  
-  if(params$save){
-    data.long %>% save_data(params$target)
-    params %>% save_data(params$target_params)
-  }
-  return(data.long)
-}
-
 run_webppl <- function(path_wppl_file, params){
   if(params$verbose){
     print(paste('model file read from:', path_wppl_file))
@@ -45,40 +32,8 @@ run_webppl <- function(path_wppl_file, params){
   return(data)
 }
 
-structure_listener_data <- function(posterior, params){
-  df_long <- posterior %>% webppl_distrs_to_tibbles()
-  # add accept conditions  
-  if(params$save){
-    x = group_map(df_long %>% group_by(level), function(dat.group, lev){
-      dat.group %>% save_data(paste(params$target_dir, .Platform$file.sep,
-                                    "results-", lev, ".rds", sep=""))
-      return()
-    });
-    params %>% save_data(params$target_params)
-  }
-  return(df_long)
-}
-
 
 # summarise webppl distributions ------------------------------------------
-# @arg posterior: in long format, must have columns *cell* and *val*
-listener_beliefs <- function(posterior, level, params, vars_condition_on=NA){
-  df <- posterior %>% filter(level==(!! level)) %>% mutate(ev=prob*val)
-  if(!is.na(vars_condition_on)){
-    listener <- df %>% filter_vars(vars_condition_on) %>%  filter(keep) %>%
-      dplyr::select(-keep)
-  } 
-  listener <- df %>% group_by(cell) %>% mutate(ev=sum(ev))
-  
-  listener <- listener %>% mutate(ev=sum(ev)) %>%
-    summarise(ev=sum(val), marginal=sum(prob), .groups="keep")
-  if(params$save){listener %>% 
-      save_data(paste(str_sub(params$target, 1, -5), "-listener-beliefs-world.rds", sep=""))
-  }
-  return(listener)
-}
-
-
 webppl_speaker_distrs_to_tibbles <- function(posterior){
   speaker <- posterior[names(posterior) != "bns"] 
   posterior_tibbles <- map2(speaker, names(speaker), function(x, y){

@@ -6,7 +6,7 @@ source(here("model", "R", "helper-functions.R"))
 source(here("R", "utils.R"))
 source(here("R", "utils-exp2.R"))
 
-
+path_cleaned_data = here("data", "cleaned-data.csv")
 # select priors to be used HERE -------------------------------------------
 
 # used_tables = "tables_dirichlet_prior_with_empirical"
@@ -52,4 +52,4 @@ posterior <- run_webppl(params$model_path, params)
 # restructure data and save
 speaker <- posterior %>% structure_speaker_data(params) %>% group_by(bn_id)
 res.avg = average_predictions_empirical(speaker, params, fn_avg)
-res.behav_model = join_model_behavioral(speaker, params)
+res.behav_model = join_model_behavioral(speaker, params, path_cleaned_data)

@@ -3,17 +3,15 @@ library(here)
 source(here("R", "utils.R"))
 source(here("model", "R", "helper-functions.R"))
 
-data = readRDS(here("data", "prolific", "blockwords", "filtered_data",
-                    "human-exp1-smoothed-exp2.rds"))
-data = get_controlled_factors(data)
+path_cleaned_data = here("data", "cleaned-data.csv")
+data = get_controlled_factors(read_csv(path_cleaned_data))
 
-data.uc = data %>% filter(human_exp2 == 1 & id!="ind2") %>% 
-  mutate(utt=utterance) %>% 
+data.uc = data %>% filter(human_exp2 == 1) %>% 
+  mutate(utterance = utt.standardized) %>% 
   chunk_utterances() %>%
-  rename(utt_type=utterance, utterance=utt) %>% 
+  rename(utt_type = utterance, utterance = utt.standardized) %>% 
   mutate(utt_type=as.character(utt_type)) %>%
   dplyr::select(-human_exp2)
-
 
 df.m_rel = data.uc %>% 
   ungroup() %>% dplyr::select(relation_type, utt_type, prior_blue, prolific_id) %>%
@@ -21,17 +19,17 @@ df.m_rel = data.uc %>%
          prior_blue = as.character(prior_blue),
          prior_blue = case_when(startsWith(prior_blue, "unc") ~ "unc",
                                 T ~ "confident")) %>% 
-  rename(relation=relation_type, subject_id=prolific_id) %>%
+  rename(relation = relation_type, subject_id = prolific_id) %>%
   group_by(relation, prior_blue)
 
 df.sum = df.m_rel %>%
-  summarize(N=n(), num_conditionals=sum(conditional)) %>% 
-  mutate(ratio=num_conditionals/N)
+  summarize(N = n(), num_conditionals = sum(conditional)) %>% 
+  mutate(ratio = num_conditionals / N)
 
 # plot data
 df.sum %>% 
-  ggplot(aes(x=relation, y=ratio)) +
-  geom_point(aes(color=prior_blue)) +
+  ggplot(aes(x = relation, y = ratio)) +
+  geom_point(aes(color = prior_blue)) +
   theme_minimal() + theme(legend.position="top") +
   ylab("ratio created conditionals")
 

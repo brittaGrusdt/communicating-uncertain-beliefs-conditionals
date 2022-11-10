@@ -252,7 +252,7 @@ average_predictions_empirical = function(dat.speaker, params, target_fn){
 }
 
 # 1:1 mapping model predictions with empirically observed tables
-join_model_behavioral = function(dat.speaker, params){
+join_model_behavioral = function(dat.speaker, params, path_data){
   predictions <- dat.speaker %>%
     dplyr::select(bn_id, utterance, probs) %>%
     rename(response=utterance) %>% 
@@ -276,9 +276,12 @@ join_model_behavioral = function(dat.speaker, params){
     unite("stimulus", "rel", "prior", sep="_") %>%
     rename(model.p=probs)
   
-  path_empiric = paste(params$dir_empiric, "human-exp1-smoothed-exp2.rds", sep=FS)
-  tables.empiric = readRDS(path_empiric)
-  message(paste("read empiric data from", path_empiric))
+  data.behav = read_csv(path_data)
+  tables.empiric = data.behav %>% 
+    dplyr::select(prolific_id, id, pe_task.smooth, utt.standardized, 
+                  human_exp2) %>% 
+    rename(utterance = utt.standardized, human_exp1 = pe_task.smooth)
+  message(paste("read empiric data from:", path_data))
   
   # join behavioral results with ids to be able to merge with model predictions
   mapping.ids = readRDS(params$tables_mapping) %>% dplyr::select(-empirical_id)
@@ -287,7 +290,7 @@ join_model_behavioral = function(dat.speaker, params){
   
   # join model and behavioral data
   behav_model = left_join(res.behavioral, df.model) %>% 
-    mutate(model.p=round(model.p, 3), human_exp1=round(human_exp1, 3))
+    mutate(model.p = round(model.p, 3), human_exp1 = round(human_exp1, 3))
   
   if(params$save) {
     fn = paste(params$target_dir, "exact-model-behavioral-predictions.csv", sep=FS)
