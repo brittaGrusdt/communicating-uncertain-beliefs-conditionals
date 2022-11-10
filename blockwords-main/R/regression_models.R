@@ -1,7 +1,6 @@
 library(brms)
 library(here)
 source(here("R", "utils.R"))
-source(here("model", "R", "helper-functions.R"))
 
 path_cleaned_data = here("data", "cleaned-data.csv")
 data = get_controlled_factors(read_csv(path_cleaned_data))
@@ -13,8 +12,8 @@ data.uc = data %>% filter(human_exp2 == 1) %>%
   mutate(utt_type=as.character(utt_type)) %>%
   dplyr::select(-human_exp2)
 
-df.m_rel = data.uc %>% 
-  ungroup() %>% dplyr::select(relation_type, utt_type, prior_blue, prolific_id) %>%
+df.m_rel = data.uc %>% ungroup() %>%
+  dplyr::select(relation_type, utt_type, prior_blue, prolific_id) %>%
   mutate(conditional=case_when(utt_type != "conditional" ~ 0, T ~ 1),
          prior_blue = as.character(prior_blue),
          prior_blue = case_when(startsWith(prior_blue, "unc") ~ "unc",
