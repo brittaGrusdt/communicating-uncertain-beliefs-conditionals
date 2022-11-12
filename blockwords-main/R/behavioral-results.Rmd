@@ -14,6 +14,7 @@ library(here)
 library(boot)
 library(ggforce)
 library(xtable)
+library(latex2exp)
 source(here("R", "analysis-utils.R"))
 theme_set(theme_minimal(base_size=12) + theme(legend.position = "top"))
 
@@ -243,6 +244,20 @@ high_ball %>% ggplot(aes(x = p, color = id)) + geom_density() +
 high_ball %>% ggplot(aes(x = id, y = p)) + geom_boxplot() +
     labs(title = "estimated marginal (intended:high, cause: ball (vertical))")
 ```
+
+
+```{r}
+ df.marginals = pe_uc_data %>% dplyr::select(prolific_id, id, relation, a, c) %>% 
+  pivot_longer(cols = c(a, c), names_to = "estimate", values_to = "p") %>% 
+  group_by(id, relation, estimate) %>% summarize(p = mean(p), .groups  = "drop_last")
+  
+df.marginals %>% 
+  ggplot(aes(x = estimate , y = p, color = id, group = id)) +
+  geom_point() + geom_line() +
+  facet_wrap(~relation)
+
+```
+
 
 
 ## UC-Task Data
@@ -632,7 +647,6 @@ df.utt_freq_by_rel = uc_data %>% ungroup() %>%
 # just plot densities for utterances that are selected at least 5 times in the 
 # corresponding relation condition
 trials_remove = df.utt_freq_by_rel %>% group_by(relation) %>% 
-  mutate(N = sum(n), ratio = round(n / N, 2) * 100) %>% 
   filter(n < 5) %>% dplyr::select(relation, utt.standardized, utt_type, n)
 xtable(trials_remove)
 
@@ -799,6 +813,44 @@ print(paste(round(nrow(df.greater) / nrow(df.lower), 3),
             "nb cases P(blue)> 0.5 +", delta05, "/ nb cases P(blue)<0.5 -", delta05))
 
 
+```
+
+
+Participants' literal meaning threshold for trials where an utterance other 
+than with 'might' is selected in the UC-task
+
+```{r}
+df.p_utts = pe_uc_data %>% filter(!utt_type == "might + literal")
+mean(df.p_utts$pe_selected_utt)
+p_u.subj = df.p_utts %>% group_by(prolific_id) %>% 
+  summarize(p_u = mean(pe_selected_utt))
+p_u.subj %>% ggplot(aes(x = p_u)) + geom_density() +
+  geom_rug()
+
+# by relations
+p_u.subj_rel = df.p_utts %>% group_by(prolific_id, relation) %>% 
+  summarize(p_u = mean(pe_selected_utt), .groups = "drop_last")
+p_u.subj_rel %>% ggplot(aes(x = p_u, color = relation)) +
+  geom_density() + geom_rug()
+
+# by id
+p_u.subj_id = df.p_utts %>% group_by(prolific_id, id, relation) %>% 
+  summarize(p_u = mean(pe_selected_utt), .groups = "drop_last")
+p_u.subj_id %>% ggplot(aes(x = p_u, color = id)) +
+  geom_density() + geom_rug() + 
+  facet_wrap(~relation)
+
+# by utterance type
+p_u.subj_utt = df.p_utts %>% group_by(prolific_id, utt_type, relation) %>% 
+  summarize(p_u = mean(pe_selected_utt), .groups = "drop_last")
+p_u.subj_utt %>% ggplot(aes(x = p_u, color = utt_type)) +
+  geom_density() + geom_rug() + facet_wrap(~relation)
+
+# by utterance type + id
+p_u.subj_utt_id = df.p_utts %>% group_by(prolific_id, id, utt_type, relation) %>% 
+  summarize(p_u = mean(pe_selected_utt), .groups = "drop_last")
+p_u.subj_utt_id %>% ggplot(aes(x = p_u, color = utt_type)) +
+  geom_density() + geom_rug() + facet_wrap(~id, scales = "free")
 ```
 
 
