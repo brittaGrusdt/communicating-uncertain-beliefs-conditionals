@@ -1,7 +1,7 @@
-library(here)
 library(devtools)
 devtools::install('../ExpDataWrangling')
 
+library(here)
 library(ExpDataWrangling)
 source(here("R", "Dirichlet-fits.R"))
 source(here("R", "model-tables.R"))
@@ -20,6 +20,8 @@ cleaned_dir = here(params$dir_formatted_data_cleaned)
 cleaned_dir.plots = paste(cleaned_dir, "plots", sep = FS)
 if(!dir.exists(cleaned_dir.plots)) dir.create(cleaned_dir.plots, recursive = T)
 
+path_empiric_tbls_ids = here(params$dir_formatted_data_cleaned,
+                             params$fn_tbls_empiric_pids)
 # 2. Processing -----------------------------------------------------------
 data <- process_data(path_to_raw_data, params$N_trials)
 save_prob_tables(data$test.pe_utt_probs_smooth, result_dir, 
@@ -117,9 +119,7 @@ p = plot_goodness_dirichlets(params.fit.single, res.goodness, df.pe_task, path_f
 # fit one distribution for data from EACH stimulus
 df.params.fit = run_fit_dirichlet(cleaned_dir, per_stimulus = T) %>%
   add_column(p_cn = 1 / 13) %>% mutate(cn = id)
-seed = params.sit_specific$seed_fitted_tables
-tables.dirichlet = makeDirichletTables(df.params.fit, seed, cleaned_dir, 
-                                       params$dir_model_input)
+tables.dirichlet = makeDirichletTables(df.params.fit, path_empiric_tbls_ids)
 res.goodness = compute_goodness_dirichlets(
   df.params.fit, df.pe_task, N_participants, path_simulated_p.contexts
 )
@@ -131,5 +131,5 @@ p = plot_goodness_dirichlets(res.goodness, df.params.fit, df.pe_task,
 
 # 8. Prepare Data for abstract state prior --------------------------------
 # generate abstract state prior tables with filtered data
-tables.model = makeAbstractPriorTables(dir_empiric = cleaned_dir)
+tables.model = makeAbstractPriorTables(path_empiric_tbls_ids)
 

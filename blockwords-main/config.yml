@@ -10,7 +10,6 @@ default:
   fn_results: "results-speaker.rds"
   fn_params: "params-speaker.rds"
   generate_utterances: false
-  seed_tables: 202008
   save: true
   cost_conditional: 0
   alpha: 3
@@ -47,6 +46,7 @@ abstract_state_prior:
   fn_tables_mapping: "mapping-tables-abstract-prior-ids.rds"
   fn_uniq_tables: "tables-abstract-prior-unique-toWPPL.rds"
   #n_best_latent: 3
+  seed_tables: 202008
   n_ind_tables: 6000
   n_dep_tables: 1500
   indep_sigma: 0.005

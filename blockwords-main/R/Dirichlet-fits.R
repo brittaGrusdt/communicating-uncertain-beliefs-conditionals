@@ -43,8 +43,10 @@ sample_dirichlet <- function(params, seed, n=1000){
   return(tables)
 }
 
-makeDirichletTables = function(df.params.fit, seed, dir_empiric, dir_model_data) {
-  tables.dirichlet = sample_dirichlet(df.params.fit, seed)
+makeDirichletTables = function(df.params.fit, path_empiric_tbl_ids) {
+  Sys.setenv(R_CONFIG_ACTIVE = "situation_specific_prior")
+  par <- config::get()
+  tables.dirichlet = sample_dirichlet(df.params.fit, par$seed_fitted_tables)
   tables.generated =  tables.dirichlet %>% 
     rename(`AC`=bg, `A-C`=b, `-AC`=g, `-A-C`=none) %>%
     mutate(`AC.round`=as.integer(round(AC, 2) * 100),
@@ -53,12 +55,13 @@ makeDirichletTables = function(df.params.fit, seed, dir_empiric, dir_model_data)
            `-A-C.round`=as.integer(round(`-A-C`, 2) * 100)) %>%
     group_by(`AC`, `A-C`, `-AC`, `-A-C`)
   tables.generated$table_id = tables.generated %>% group_indices() 
-  tables.model = match_sampled_and_empiric_tables(tables.generated, dir_empiric)
   
-  Sys.setenv(R_CONFIG_ACTIVE = "situation_specific_prior")
-  par <- config::get()
+  path_empiric_tbls_ids = par$fn_tbls_empiric_pids
+  tables.model = match_sampled_and_empiric_tables(tables.generated, 
+                                                  path_empiric_tbl_ids)
   path_table_mappings = here(par$dir_model_input, par$fn_tables_mapping)
-  tables.with_empirical = add_empirical_tables(tables.model, dir_empiric,
+  tables.with_empirical = add_empirical_tables(tables.model,
+                                               path_empiric_tbl_ids,
                                                path_table_mappings)
 
   # for each table add ll for each context
@@ -85,6 +88,8 @@ makeDirichletTables = function(df.params.fit, seed, dir_empiric, dir_model_data)
     mutate(vs = list(c("AC", "A-C", "-AC", "-A-C")),
            ps = list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>% 
     dplyr::select(-`AC`, -`A-C`, -`-AC`, -`-A-C`)
+  
+  dir_model_data <- par$dir_model_input
   # tables %>% save_data(here(dir_model_data, str_replace(par$tables_path, ".rds", "-no-bns.rds")))
   
   # combine each sampled table with each stimulus
@@ -94,7 +99,7 @@ makeDirichletTables = function(df.params.fit, seed, dir_empiric, dir_model_data)
     mutate(vs = list(c("AC", "A-C", "-AC", "-A-C")),
            ps = list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>% 
     dplyr::select(-`AC`, -`A-C`, -`-AC`, -`-A-C`)
-    
+  
   bns %>% filter(!added) %>% save_data(here(dir_model_data, par$fn_tables))
   bns %>% save_data(here(dir_model_data, par$fn_tables_with_empiric))
   

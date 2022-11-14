@@ -30,9 +30,9 @@ compute_cond_prob <- function(distr_wide, prob){
 
 
 # adds empirical tables to set of all generated tables (tables.gen)
-add_empirical_tables = function(tables.gen, dir_empiric, path_mapping=NA){
+add_empirical_tables = function(tables.gen, path_empiric_tbl_ids, path_mapping=NA){
   max.table_id = tables.gen$table_id %>% max()
-  tbls.emp = readRDS(paste(dir_empiric, "tables-empiric-pids.rds", sep=FS)) %>%
+  tbls.emp = readRDS(path_empiric_tbl_ids) %>%
     rename(AC=bg, `A-C`=b, `-AC`=g, `-A-C`=none) %>%
     dplyr::select(-ends_with(".round")) %>%
     rowid_to_column("table_id") %>% group_by(table_id) %>%
@@ -164,7 +164,7 @@ create_independent_tables <- function(params){
   return(tables_wide)
 }
 
-create_tables <- function(params, use_seed=TRUE){
+create_tables <- function(params, use_seed = TRUE){
   if(use_seed) set.seed(params$seed_tables)
   cns_dep = params$cns[params$cns != "A || C"]
   tables_all <- list()
@@ -191,21 +191,11 @@ tables_to_bns = function(tables, params){
   return(tbls)
 }
 
-sampleModelTables = function(){
+makeAbstractPriorTables = function(path_empiric_tbls_ids) {
   Sys.setenv(R_CONFIG_ACTIVE = "abstract_state_prior")
-  params <- config::get()
-  params$save = FALSE
-  tables.model <- create_tables(params)
-  return(list(tables = tables.model, params = params))
-}
-
-# saves tables to folder @arg dir_empiric
-makeAbstractPriorTables = function(dir_empiric) {
-  dat.model = sampleModelTables()
-  tables.model = dat.model$tables
-  tables.par = dat.model$params
-  
-  tables.generated = tables.model %>% unnest(c(vs, ps)) %>%
+  tables.par <- config::get()
+  tables.generated <- create_tables(tables.par) %>% 
+    unnest(c(vs, ps)) %>%
     pivot_wider(names_from="vs", values_from="ps") %>%
     mutate(AC.round=as.integer(round(AC, 2) * 100),
            `A-C.round`=as.integer(round(`A-C`,2) * 100),
@@ -213,10 +203,13 @@ makeAbstractPriorTables = function(dir_empiric) {
            `-A-C.round`=as.integer(round(`-A-C`, 2) * 100))
   tables.generated = tables.generated %>% group_by(table_id)
   # for each sampled table add which empirical tables match
-  tables.model = match_sampled_and_empiric_tables(tables.generated, dir_empiric)
+  tables.model = match_sampled_and_empiric_tables(tables.generated,
+                                                  path_empiric_tbls_ids)
   # add all distinct exact empirical tables to generated set of tables
   path_mapping = here(tables.par$dir_model_input, tables.par$fn_tables_mapping)
-  tables.with_empirical = add_empirical_tables(tables.model, dir_empiric, path_mapping)
+  tables.with_empirical = add_empirical_tables(tables.model, 
+                                               path_empiric_tbls_ids, 
+                                               path_mapping)
   
   # combine each generated/empirical table with each causal net
   # filter out those with -Infinity log likelihood
@@ -258,9 +251,9 @@ makeAbstractPriorTables = function(dir_empiric) {
 # and brings result into format for webppl model
 # @arg tables.generated: tables uniquely grouped by table_id
 # (before combining with causal nets)
-match_sampled_and_empiric_tables = function(tables.generated, dir_empiric){
-  tables.empiric.pids = readRDS(paste(dir_empiric, 
-                                      "tables-empiric-pids.rds", sep=FS)) %>%
+match_sampled_and_empiric_tables = function(tables.generated, 
+                                            path_empiric_tbl_ids) {
+  tables.empiric.pids = readRDS(path_empiric_tbl_ids) %>%
     rename(AC = bg, `A-C` = b, `-AC` = g, `-A-C` = none,
            AC.round = `bg.round`, `A-C.round` = `b.round`,
            `-AC.round` = `g.round`, `-A-C.round` = `none.round`) %>%

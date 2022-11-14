@@ -13,7 +13,6 @@ active_config = "situation_specific_prior"
 Sys.setenv(R_CONFIG_ACTIVE = active_config)
 params <- config::get()
 
-# params$used_tables = used_tables
 if(!dir.exists(params$dir_results)) dir.create(params$dir_results, recursive = T)
 if(!dir.exists(params$dir_model_input)) dir.create(params$dir_model_input, recursive = T)
 
