@@ -1,4 +1,4 @@
-id,N,utterance,count,ratio
+id,N,utt.standardized,count,ratio
 if1_hh,89,blue does not fall,1,0.011235955056179775
 if1_hh,89,blue falls,1,0.011235955056179775
 if1_hh,89,blue falls but green does not fall,2,0.02247191011235955

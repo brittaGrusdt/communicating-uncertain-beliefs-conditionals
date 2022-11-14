@@ -6,10 +6,18 @@ library(png)
 library(latex2exp)
 library(RColorBrewer)
 library(boot) 
-source(here("R", "analysis-utils.R"))
-
+library(readr)
+library(tidyverse)
+library(ExpDataWrangling)
+# Functions ---------------------------------------------------------------
+rep_each <- function(x, times) {
+  times <- rep(times, length.out = length(x))
+  rep(x, times = times)
+}
 # Data --------------------------------------------------------------------
 result_dir = here("data", "formatted-cleaned")
+plot_dir <- here("data", "formatted-cleaned", "plots", "cogsci-paper")
+if(!dir.exists(plot_dir)) dir.create(plot_dir, recursive = T)
 DATA = read_csv(here("data", "cleaned-data.csv"))
 
 tables.smooth = DATA %>% filter(!is.na(slider)) %>% 
@@ -20,27 +28,26 @@ tables.smooth = DATA %>% filter(!is.na(slider)) %>%
 
 stimuli = tables.smooth$id %>% unique() %>% sort()
 
-behav_dirichlet = join_model_behavioral_averages(
-  "dirichlet-prior", result_dir, fn_data = "-empirical"
-) %>% mutate(utterance = utt.standardized) %>% chunk_utterances() %>%
+Sys.setenv(R_CONFIG_ACTIVE = "process_data")
+params_behav <- config::get()
+path_behav <- here(params_behav$dir_formatted_data_cleaned, 
+                   params_behav$fn_uc_avg)
+
+Sys.setenv(R_CONFIG_ACTIVE = "situation_specific_prior")
+params.sit_specific <- config::get()
+path_model.sit_spec = here(params.sit_specific$dir_results, 
+                           params.sit_specific$fn_predictions_by_context)
+behav_dirichlet = join_model_behavioral_averages(path_behav, path_model.sit_spec) %>%
+  mutate(utterance = utt.standardized) %>% chunk_utterances() %>%
   rename(utt.type = utterance)
 
-behav_model_abstract = join_model_behavioral_averages(
-  "abstract-prior", result_dir, fn_data = "-empirical"
-) %>% mutate(utterance = utt.standardized) %>% chunk_utterances() %>%
+Sys.setenv(R_CONFIG_ACTIVE = "abstract_state_prior")
+params.abstract <- config::get()
+path_model.abstract = here(params.abstract$dir_results, 
+                           params.abstract$fn_predictions_by_context)
+behav_abstract = join_model_behavioral_averages(path_behav, path_model.abstract) %>% 
+  mutate(utterance = utt.standardized) %>% chunk_utterances() %>%
   rename(utt.type = utterance)
-
-avg.dirichlet = read_csv(
-  here("model", "results", "dirichlet-prior",
-       "model-avg-predictions-empirical-chunked.csv")
-  ) %>% dplyr::select(-best.utt) %>% 
-  add_column(predictor = "situation-specific prior")
-
-avg.abstract = read_csv(
-  here("model", "results", "abstract-prior",
-       "model-avg-predictions-empirical-chunked.csv")
-  ) %>% dplyr::select(-best.utt) %>%
-  add_column(predictor = "abstract state prior")
 
 # behavioral utterance choice data (all, not only ratios)
 data.uc =  DATA %>% get_controlled_factors() %>% filter(human_exp2 == 1) %>% 
@@ -108,7 +115,7 @@ df.uc.unc %>%
 # abstract + specific model plotted together
 results.joint = bind_rows(
   behav_dirichlet %>% add_column(predictor = "situation-specific prior"),
-  behav_model_abstract %>% add_column(predictor = "abstract state prior")
+  behav_abstract %>% add_column(predictor = "abstract state prior")
 ) %>% 
   mutate(utt.type = as.character(utt.type)) %>% 
   mutate(stimulus.type = case_when(str_detect(stimulus, "if") ~ "dependent",
@@ -233,9 +240,20 @@ y_obs = map_dfr(stimuli, function(stim){
   return(res)
 })
 
-avg.models = bind_rows(avg.abstract, avg.dirichlet)
-results.joint = bind_rows(y_obs %>% add_column(predictor="behavioral"),
-                          avg.models) %>%
+res_chunked.dirichlet = read_csv(
+  here(params.sit_specific$dir_results, 
+       params.sit_specific$fn_predictions_by_context_chunked)
+) %>% dplyr::select(-best.utt) %>% 
+  add_column(predictor = "situation-specific prior")
+
+res_chunked.abstract = read_csv(
+  here(params.abstract$dir_results, 
+       params.abstract$fn_predictions_by_context_chunked)
+) %>% dplyr::select(-best.utt) %>% 
+  add_column(predictor = "abstract state prior")
+res_chunked.models = bind_rows(res_chunked.abstract, res_chunked.dirichlet)
+results.joint = bind_rows(y_obs %>% add_column(predictor = "behavioral"),
+                          res_chunked.models) %>%
   mutate(utterance = as.factor(utterance), predictor = as.factor(predictor)) 
   
 plots.bars = list()
@@ -269,7 +287,8 @@ for(id in stimuli) {
 # A. stimuli pictures
 plots.stimuli = list()
 for(id in stimuli){
-  p.stim = readPNG(here("stimuli", "img", "group1", paste(id, "png", sep=".")))
+  p.stim = readPNG(here("experiment", "stimuli", "img", "group1", 
+                        paste(id, "png", sep=".")))
   
   conditions = str_split(id, "_")[[1]]
   rel = conditions[[1]]

@@ -1,6 +1,14 @@
 default:
-  exp_name: "blockwords"
-  dir_empiric: "./data/prolific/blockwords"
+  #dir_empiric: !expr paste("data", "formatted-cleaned", sep=.Platform$file.sep)
+  path_cleaned_data: !expr paste("data", "cleaned-data.csv", sep=.Platform$file.sep)
+  dir_model_input: !expr paste("model", "data", sep = .Platform$file.sep)
+  fn_predictions_by_context: "predictions-by-context.csv"
+  fn_predictions_by_context_chunked: "predictions-by-context-chunked.csv"
+  fn_joint_results: "exact-model-behavioral-predictions.csv"
+  fn_tbls_empiric_pids: "tables-empiric-pids.rds"
+  fn_tables_smooth: "pe_tables_smooth.csv"
+  fn_results: "results-speaker.rds"
+  fn_params: "params-speaker.rds"
   generate_utterances: false
   seed_tables: 202008
   save: true
@@ -9,61 +17,36 @@ default:
   theta: 0.7
   verbose: true
   cns: !expr c("A implies C", "C implies A", "A implies -C", "C implies -A", "A || C")
-  packages:  !expr c(here("model", "webppl-model", "node_modules", "conditionalsHelpers"),
-                     here("model", "webppl-model", "node_modules", "conditionalsDefault"))
-  model_path: !expr here("model", "webppl-model", "default-model", "default-model.wppl")
+  # packages:  !expr c(here("model", "webppl-model", "node_modules", "conditionalsHelpers"),
+  #                    here("model", "webppl-model", "node_modules", "conditionalsDefault"))
+  # model_path: !expr here("model", "webppl-model", "default-model", "default-model.wppl")
+  packages:  !expr c(paste("model", "webppl-model", "node_modules", 
+                           "conditionalsHelpers", sep = .Platform$file.sep),
+                     paste("model", "webppl-model", "node_modules", 
+                           "conditionalsDefault", sep = .Platform$file.sep))
+  model_path: !expr paste("model", "webppl-model", "default-model", 
+                          "default-model.wppl", sep = .Platform$file.sep)
   #seed_webppl: !expr as.numeric(Sys.time())
   seed_webppl: 123467
   vars: !expr c("A", "C")
-  bias: "none"
-
-# only add new variables, since if more than two config-ids are loaded
-# default value is taken again if it does not appear in a later loaded config-id,
-# although it had been overwritten in a previously loaded config-id
-model_abstract_prior: &model_abstract_prior
-  dir_empiric: "./data/prolific/blockwords/filtered_data"
-  target_dir: "./model/results/abstract-prior"
-  utts_path: "./model/data/utterances-abstract-prior.rds"
-  tables_mapping: "./model/data/mapping-tables-abstract-prior-ids.rds"
-  n_best_latent: 3
-
-model_dirichlet_prior: &model_dirichlet_prior
-  dir_empiric: "./data/prolific/blockwords/filtered_data"
-  target_dir: "./model/results/dirichlet-prior"
-  utts_path: "./model/data/utterances-dirichlet-prior.rds"
-  target_fits: "params-fitted-dirichlet.csv"
-  tables_mapping: "./model/data/mapping-tables-dirichlet-prior-ids.rds"
-  # n_best_latent: !expr Inf # set to Inf for including all
-  n_best_latent: 13
-
-tables_dirichlet_prior_with_empirical:
-  <<: *model_dirichlet_prior
-  tables_empiric: "./model/data/tables-dirichlet-prior-toWPPL-with-empirical.rds"
-  target_uniq_tables: "./model/data/tables-dirichlet-prior-unique-toWPPL.rds"
-  target_fn: "results-speaker-empirical.rds"
-  target_params: "params-speaker-empirical.rds"
-
-
-tables_abstract_prior_with_empirical:
-  <<: *model_abstract_prior
-  tables_empiric: "./model/data/tables-abstract-prior-toWPPL-with-empirical.rds"
-  target_uniq_tables: "./model/data/tables-abstract-prior-unique-toWPPL.rds"
-  target_fn: "results-speaker-empirical.rds"
-  target_params: "params-speaker-empirical.rds"
-
-
-## 2. Level configurations ##
-# @arg utt: - if set to "p_delta" or "p_rooij", respective value must be
-#           large (see in webppl file) for all states given to the speaker,
-#           - if set to "" no condition, just sampled from prior as usual
-speaker:
+  # bias: "none"
   level_max: "speaker"
+  # @arg utt: - if set to "p_delta" or "p_rooij", respective value must be
+  #           large (see in webppl file) for all states given to the speaker,
+  #           - if set to "" no condition, just sampled from prior as usual
   utt: ""
-  target_fn: "results-speaker.rds"
-  target_params: "params-speaker.rds"
   n_samples: 0 # bns given by empirical tables
 
-abstract_tables:
+
+abstract_state_prior:
+  dir_results: !expr paste("model", "results", "abstract-prior", sep=.Platform$file.sep)
+  fn_tables: "tables-abstract-prior-toWPPL.rds"
+  fn_tables_with_empiric: "tables-abstract-prior-toWPPL-with-empirical.rds"
+  fn_params_tables: "params-tables-abstract-prior.rds"
+  fn_utterances: "utterances-abstract-prior.rds"
+  fn_tables_mapping: "mapping-tables-abstract-prior-ids.rds"
+  fn_uniq_tables: "tables-abstract-prior-unique-toWPPL.rds"
+  #n_best_latent: 3
   n_ind_tables: 6000
   n_dep_tables: 1500
   indep_sigma: 0.005
@@ -73,19 +56,38 @@ abstract_tables:
   beta_pos_b: 1
   beta_marg_a: 1
   beta_marg_b: 1
-  target_dir: "./model/data"
-  tables_path: "tables-abstract-prior-toWPPL.rds"
-  target_params: "params-tables-abstract-prior.rds"
-  target_mapping: "./model/data/mapping-tables-abstract-prior-ids.rds"
-  target_uniq_tables: "./model/data/tables-abstract-prior-unique-toWPPL.rds"
 
-dirichlet_tables:
+situation_specific_prior:
+  dir_results: !expr paste("model", "results", "dirichlet-prior", sep=.Platform$file.sep)
+  fn_tables: "tables-dirichlet-prior-toWPPL.rds"
+  fn_tables_with_empiric: "tables-dirichlet-prior-toWPPL-with-empirical.rds"
+  fn_params_tables: "params-tables-dirichlet-prior.rds"
+  fn_utterances: "utterances-dirichlet-prior.rds"
+  fn_tables_mapping: "mapping-tables-dirichlet-prior-ids.rds"
+  fn_uniq_tables: "tables-dirichlet-prior-unique-toWPPL.rds"
   n_all_contexts: 13
-  target_dir: "./model/data"
-  tables_path: "tables-dirichlet-prior-toWPPL.rds"
-  target_params: "params-tables-dirichlet-prior.rds"
-  target_mapping: "./model/data/mapping-tables-dirichlet-prior-ids.rds"
-  target_uniq_tables: "./model/data/tables-dirichlet-prior-unique-toWPPL.rds"
+  fn_simulated_p_by_context: "simulated-p-values-fitted-dirichlet.csv"
+  fn_simulated_p_overall: "simulated-p-values-fitted-single-dirichlet.csv"
+  seed_fitted_tables: "20202020"
 
+process_data:
+  dir_data: "data"
+  dir_formatted_data_all: !expr paste("data", "formatted-all", sep=.Platform$file.sep)
+  dir_formatted_data_cleaned: !expr paste("data", "formatted-cleaned", sep=.Platform$file.sep)
+  fn_raw_data: "raw_results_54_blockwords-main_BG.csv"
+  fn_formatted_data_all: "all-data.csv"
+  fn_formatted_data_cleaned: "cleaned-data.csv"
+  fn_uc_avg: "behavioral-avg-task2.csv"
+  fn_uc_avg_chunked: "behavioral-avg-task2-chunked.csv"
+  fn_quality_data: "test-data-prior-quality.rds"
+  fn_ids_excluded: "ids_excluded.csv"
+  fn_train_pe: "train-slider-ratings.csv"
+  fn_train_attention: "train-attention.csv"
+  fn_train_slider_choice: "train-slider-choice.csv"
+  N_trials: !expr list(train = 14 + 3 + 10, 
+                        test = 13 * 2 + 1, 
+                        color_vision = 6,
+                        slider_choice = 10, 
+                        attention_check = 3)
 
 # there needs to be 1 blank final line!

@@ -3,9 +3,11 @@ library(greta)
 library(here)
 library(MCMCpack)
 library(rwebppl)
-source(here("R", "utils.R"))
+library(matrixStats)
 
 FS = .Platform$file.sep
+# SEED_FITTED_TABLES = "20202020"
+
 
 # Fit dirichlet distributions ---------------------------------------------
 get_optimal_alphas <- function(table_data, st_id) {
@@ -15,7 +17,7 @@ get_optimal_alphas <- function(table_data, st_id) {
     y <- table_data
   }
   y <- y[, c("bg", "b", "g", "none")] %>% as.matrix()
-  y <- prop.table(y + epsilon, 1)
+  y <- prop.table(y + EPSILON, 1)
   
   alpha <- uniform(0, 20, 4)
   distribution(y) <- greta::dirichlet(t(alpha), n_realisations = nrow(y))
@@ -31,8 +33,8 @@ get_optimal_alphas <- function(table_data, st_id) {
     )
 }
 
-sample_dirichlet <- function(params, n=1000){
-  set.seed(seed_fitted_tables)
+sample_dirichlet <- function(params, seed, n=1000){
+  set.seed(seed)
   tables = map_dfr(seq(1, nrow(params)), function(i){
      row = params[i,]
      rdirichlet(n, row[1, 2:5] %>% as.numeric()) %>% as_tibble() %>%
@@ -41,8 +43,8 @@ sample_dirichlet <- function(params, n=1000){
   return(tables)
 }
 
-makeDirichletTables = function(df.params.fit, dir_empiric) {
-  tables.dirichlet = sample_dirichlet(df.params.fit)
+makeDirichletTables = function(df.params.fit, seed, dir_empiric, dir_model_data) {
+  tables.dirichlet = sample_dirichlet(df.params.fit, seed)
   tables.generated =  tables.dirichlet %>% 
     rename(`AC`=bg, `A-C`=b, `-AC`=g, `-A-C`=none) %>%
     mutate(`AC.round`=as.integer(round(AC, 2) * 100),
@@ -53,67 +55,69 @@ makeDirichletTables = function(df.params.fit, dir_empiric) {
   tables.generated$table_id = tables.generated %>% group_indices() 
   tables.model = match_sampled_and_empiric_tables(tables.generated, dir_empiric)
   
-  par = configure(c("dirichlet_tables"))
+  Sys.setenv(R_CONFIG_ACTIVE = "situation_specific_prior")
+  par <- config::get()
+  path_table_mappings = here(par$dir_model_input, par$fn_tables_mapping)
   tables.with_empirical = add_empirical_tables(tables.model, dir_empiric,
-                                               par$target_mapping)
+                                               path_table_mappings)
 
   # for each table add ll for each context
   stimuli = tables.dirichlet$context %>% unique
   tables.ll = map_dfc(seq(1, length(stimuli)), function(i){
     stimulus = stimuli[[i]]
     par = df.params.fit %>% filter(id == (!! stimulus))
-    ll = add_ll_dirichlet(tables.with_empirical %>% ungroup() %>%
-        dplyr::select(AC, `A-C`, `-AC`, `-A-C`), par
-    )
+    df.tbls = tables.with_empirical %>% ungroup() %>%
+      dplyr::select(AC, `A-C`, `-AC`, `-A-C`)
+    ll = add_ll_dirichlet(df.tbls, par)
     names(ll)[names(ll) == "ll.table"] <- paste("ll", stimulus, sep=".")
     return(ll)
   })
   tables.ll.long = bind_cols(tables.with_empirical, tables.ll) %>%
     rowid_to_column() %>% group_by(rowid) %>% 
-    pivot_longer(cols=starts_with("ll."), names_to="ll_stimulus", values_to="ll")
+    pivot_longer(cols = starts_with("ll."), names_to = "ll_stimulus", values_to="ll")
   
   # just sampled tables with respective ll
   tables = tables.ll.long %>%
-    mutate(ll_stimulus=str_replace(ll_stimulus, "ll.", "")) %>%
-    filter(context==ll_stimulus) %>% rename(cn=ll_stimulus) %>%
-    mutate(bn_id=paste(table_id, context, sep="_")) %>% 
+    mutate(ll_stimulus = str_replace(ll_stimulus, "ll.", "")) %>%
+    filter(context == ll_stimulus) %>% rename(cn = ll_stimulus) %>%
+    mutate(bn_id = paste(table_id, context, sep="_")) %>% 
     ungroup() %>% dplyr::select(-rowid) %>% group_by(bn_id) %>%
-    mutate(vs=list(c("AC", "A-C", "-AC", "-A-C")),
-           ps=list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>% 
+    mutate(vs = list(c("AC", "A-C", "-AC", "-A-C")),
+           ps = list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>% 
     dplyr::select(-`AC`, -`A-C`, -`-AC`, -`-A-C`)
-  tables %>% save_data(here("model", "data", str_replace(par$tables_path, ".rds", "-no-bns.rds")))
+  # tables %>% save_data(here(dir_model_data, str_replace(par$tables_path, ".rds", "-no-bns.rds")))
   
   # combine each sampled table with each stimulus
   bns = tables.ll.long %>% combine_tables_and_contexts() %>%
     ungroup() %>% dplyr::select(-rowid) %>%
     mutate(bn_id = paste(table_id, cn, sep="_")) %>% group_by(bn_id) %>%
-    mutate(vs=list(c("AC", "A-C", "-AC", "-A-C")),
-           ps=list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>% 
+    mutate(vs = list(c("AC", "A-C", "-AC", "-A-C")),
+           ps = list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>% 
     dplyr::select(-`AC`, -`A-C`, -`-AC`, -`-A-C`)
     
-  bns %>% filter(!added) %>% save_data(here("model", "data", par$tables_path))
-  bns %>% save_data(here("model", "data", str_replace(par$tables_path, ".rds", "-with-empirical.rds")))
+  bns %>% filter(!added) %>% save_data(here(dir_model_data, par$fn_tables))
+  bns %>% save_data(here(dir_model_data, par$fn_tables_with_empiric))
   
   # unique tables marginal P(tables) computed across cns with logsumexp
   tables = group_map(bns %>% group_by(table_id), function(table, table_id){
     table_id=table_id$table_id
-    ll=logSumExp(table$ll) + log(1/13)
+    ll = logSumExp(table$ll) + log(1/13)
     df = table %>% add_column(table_id=(!! table_id))
     return(df[1,] %>% mutate(ll=(!!ll)) %>% dplyr::select(-cn, -best.cn))
   }) %>% bind_rows() %>% group_by(table_id) %>% 
-    mutate(cn="", best.cn=TRUE)
+    mutate(cn = "", best.cn=TRUE)
   
-  save_data(tables, par$target_uniq_tables)
+  save_data(tables, here(par$dir_model_input, par$fn_uniq_tables))
   
   return(bns)
 }
 
 combine_tables_and_contexts = function(tbls.ll){
-  params = configure("dirichlet_tables")
-  tbls = tbls.ll  %>% separate("ll_stimulus", into=c("tmp", "cn"), sep="\\.") %>%
+  tbls = tbls.ll  %>% 
+    separate("ll_stimulus", into=c("tmp", "cn"), sep="\\.") %>%
     dplyr::select(-tmp) %>%
-    group_by(table_id) %>% mutate(best.cn=ll==max(ll)) %>% 
-    arrange(desc(ll)) %>% mutate(rank=seq(1:n()))
+    group_by(table_id) %>% mutate(best.cn = ll == max(ll)) %>% 
+    arrange(desc(ll)) %>% mutate(rank = seq(1:n()))
   return(tbls)
 }
 
@@ -200,8 +204,8 @@ ll_dirichlet_empirical_data = function(params, df.pe_task){
 }
 
 # @arg params: with columns: id, alpha_1, alpha_2, alpha_3, alpha_4, p_cn, cn
-# @arg N: tibble with cols id, n. For each id gives number of participants
-goodness_fits_dirichlet = function(params, df.pe_task, n, N){
+# @arg df.N: tibble with cols id, n. For each id gives number of participants
+goodness_fits_dirichlet = function(params, df.pe_task, n, df.N){
   ll.empirical = ll_dirichlet_empirical_data(params, df.pe_task)
   # Sample n times N=#participants values for each stimulus
   # (each has a different fitted dirichlet distribution)
@@ -212,13 +216,13 @@ goodness_fits_dirichlet = function(params, df.pe_task, n, N){
     par.vec = par[, c("alpha_1", "alpha_2", "alpha_3", "alpha_4")] %>% as.numeric()
     # sample n times N (N: #participants) tables and compute log likelihood
     ll.simulated = map_dfr(seq(1, n), function(i){
-      N_stim = N %>% filter(id==(!! id)) %>% pull(n)
+      N_stim = df.N %>% filter(id == (!! id)) %>% pull(n)
       # generated set of tables
       tables.chunk = rdirichlet(N_stim, par.vec) %>% as_tibble() %>%
         add_ll_dirichlet(par %>% add_column(id=(!! id)))
       return(tables.chunk %>% add_column(idx_rep = i))
     })
-    return(ll.simulated %>% mutate(stimulus_id=id))
+    return(ll.simulated %>% mutate(stimulus_id = id))
   });
   ll.per_sample_and_id = ll_samples %>% bind_rows() %>%
     group_by(stimulus_id, idx_rep) %>%
@@ -233,23 +237,22 @@ goodness_fits_dirichlet = function(params, df.pe_task, n, N){
 }
 
 # use id="all" if not per stimulus (each=F)
-compute_goodness_dirichlets = function(params, df.pe_task, N, dir_empiric, 
-                                       n = 10**3, each = T){
-  res.goodness = goodness_fits_dirichlet(params, df.pe_task, n, N) %>% 
+compute_goodness_dirichlets = function(params, df.pe_task, df.N, 
+                                       path_target_csv=NA, n=10**3){
+  res.goodness = goodness_fits_dirichlet(params, df.pe_task, n, df.N) %>% 
     arrange(desc(p.val));
   p.vals = res.goodness %>% dplyr::select(-ll_sample, -sample_worse, -idx_rep) %>%
     distinct_at(vars(c(stimulus_id)), .keep_all = T) %>% 
     mutate(p.val = round(p.val, 3))
-  fn = ifelse(each, "fitted-dirichlet.csv", "fitted-single-dirichlet.csv")
-  write_csv(p.vals, paste(dir_empiric, FS, "simulated-p-values-", fn, sep=""))
+  if(!is.na(path_target_csv)) {
+    write_csv(p.vals, path_target_csv)
+    print(paste("wrote simulated p-values to:", path_target_csv))
+  }
   return(res.goodness)
 }
 
-plot_goodness_dirichlets = function(res.goodness, params.fit, df.pe_task, plot_dir){
-  if(params.fit[1,]$id == "all") { fn = "goodness-single-dirichlet-fit.png"
-  }else {
-    fn = "goodness-dirichlet-fits.png"
-  }
+plot_goodness_dirichlets = function(params.fit, res.goodness, df.pe_task, 
+                                    path_target=NA){
   ll.obs = ll_dirichlet_empirical_data(params.fit, df.pe_task)
   p = res.goodness %>% ggplot(aes(x = ll_sample)) +
     geom_density() +
@@ -258,35 +261,11 @@ plot_goodness_dirichlets = function(res.goodness, params.fit, df.pe_task, plot_d
     facet_wrap(~stimulus_id) +
     theme_classic() +
     labs(x="log-likelihood simulated data")
-  if(!dir.exists(plot_dir)){dir.create(plot_dir)}
-  save_to = paste(plot_dir, fn, sep = FS)
-  ggsave(fn, p, height=6)
-  print(paste("saved plot to", save_to))
-  return(p)
-}
-
-sample_fitted_dirichlet = function(params.fitted, N){
-  samples = map_dfr(params.fitted$id %>% unique(), function(id) {
-    df = params.fitted %>% filter(id == (!! id))
-    n = round(df$cn * N)
-    tables = rdirichlet(n, alpha=c(df$a1, df$a2, df$a3, df$a4)) %>% as_tibble() %>%
-      rename(bg=V1, b=V2, g=V3, none=V4)
-    return(tables %>% add_column(id=(!! id)))
-  })
-  return(samples)
-}
-
-plot_fits = function(params){
-  samples = sample_fitted_dirichlet(params, 1000)
-  p = samples %>%
-    pivot_longer(cols=c(-id), names_to="key", values_to="val") %>%
-    mutate(key=factor(key, levels=c("bg", "b", "g", "none"),
-                      labels=c("both", "blue & ¬green",
-                               "¬blue & green", "none"))) %>% 
-    ggplot(aes(x=val, fill=key)) + geom_density(alpha=0.5) + 
-    theme_minimal() + theme(legend.position="top") +
-    scale_fill_brewer(palette="Dark2") +
-    facet_wrap(id~key, scales="free", ncol=2)
+  
+  if(!is.na(path_target)) {
+    ggsave(path_target, p, height=6)
+    print(paste("saved plot to:", path_target))
+  }
   return(p)
 }
 

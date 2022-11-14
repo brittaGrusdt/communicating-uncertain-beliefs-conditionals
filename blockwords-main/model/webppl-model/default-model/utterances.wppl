@@ -1,8 +1,6 @@
 globalStore.thresholds = {theta: data["theta"][0], theta_likely : 0.5}
 var verbose = data["verbose"][0]
 var variables = data["vars"]
-var bias = data["bias"][0]
-globalStore.bias = bias
 var tables_list = data["tables"]
 globalStore.cns = data["cns"]
 
@@ -14,7 +12,6 @@ globalStore.bns = map(function(obj){
 }, tables_list)
 
 if(verbose){
-  display("bias: " + bias)
   display("theta: " + globalStore.thresholds.theta)
   display("# tables: " + globalStore.bns.length)
   display("vars: " + variables)

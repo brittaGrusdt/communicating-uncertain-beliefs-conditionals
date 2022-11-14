@@ -1,4 +1,4 @@
-id,utterance,count,ratio
+id,utt_type,count,ratio
 if1_hh,might + literal,3,0.03
 if1_hh,conditional,15,0.15000000000000002
 if1_hh,literal,4,0.04

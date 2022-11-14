@@ -18,14 +18,16 @@ webppl_distrs_to_tibbles <- function(posterior){
 run_webppl <- function(path_wppl_file, params){
   if(params$verbose){
     print(paste('model file read from:', path_wppl_file))
-    print(paste('packages loaded from:' ,params$packages))
+    print(paste('packages loaded from:', params$packages))
   }
-  print(paste("theta:", params$theta, "alpha:", params$alpha, "cost_c:", params$cost_conditional))
+  print(paste("theta:", params$theta, 
+              "alpha:", params$alpha, 
+              "cost_c:", params$cost_conditional))
   data <-   webppl(program_file = path_wppl_file,
                    data = params,
                    data_var = "data",
                    random_seed = params$seed_webppl,
-                   packages=params$packages
+                   packages = params$packages
   )
   # data is a list of lists
   data <- data %>% map(function(x){as_tibble(x)})
@@ -75,8 +77,8 @@ structure_speaker_data <- function(posterior, params, save=NA){
     ungroup()
   
   if(save){
-    df %>% save_data(paste(params$target_dir, params$target_fn, sep=.Platform$file.sep))
-    params %>% save_data(params$target_params)
+    df %>% save_data(here(params$dir_results, params$fn_results))
+    params %>% save_data(here(params$dir_results, params$fn_params))
   }
   return(df)
 }

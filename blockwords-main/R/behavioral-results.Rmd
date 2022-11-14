@@ -15,7 +15,9 @@ library(boot)
 library(ggforce)
 library(xtable)
 library(latex2exp)
-source(here("R", "analysis-utils.R"))
+library(scales)
+library(tidyverse)
+library(ExpDataWrangling)
 theme_set(theme_minimal(base_size=12) + theme(legend.position = "top"))
 
 path_cleaned_data = here("data", "cleaned-data.csv")
@@ -247,7 +249,7 @@ high_ball %>% ggplot(aes(x = id, y = p)) + geom_boxplot() +
 
 
 ```{r}
- df.marginals = pe_uc_data %>% dplyr::select(prolific_id, id, relation, a, c) %>% 
+ df.marginals = pe_data.wide %>% dplyr::select(prolific_id, id, relation, a, c) %>% 
   pivot_longer(cols = c(a, c), names_to = "estimate", values_to = "p") %>% 
   group_by(id, relation, estimate) %>% summarize(p = mean(p), .groups  = "drop_last")
   

@@ -1,0 +1,53 @@
+stimulus,utterance,p,best.utt
+if1_hh,might + literal,0.285,FALSE
+if1_hh,conditional,0.286,TRUE
+if1_hh,literal,0.286,TRUE
+if1_hh,conjunction,0.144,FALSE
+if1_lh,might + literal,0.279,FALSE
+if1_lh,conditional,0,FALSE
+if1_lh,literal,0.356,FALSE
+if1_lh,conjunction,0.365,TRUE
+if1_u-Lh,might + literal,0.284,FALSE
+if1_u-Lh,conditional,0.227,FALSE
+if1_u-Lh,literal,0.3,TRUE
+if1_u-Lh,conjunction,0.187,FALSE
+if1_uh,might + literal,0.285,FALSE
+if1_uh,conditional,0.286,TRUE
+if1_uh,literal,0.286,TRUE
+if1_uh,conjunction,0.144,FALSE
+if2_hl,might + literal,0.282,FALSE
+if2_hl,conditional,0.284,TRUE
+if2_hl,literal,0.284,TRUE
+if2_hl,conjunction,0.148,FALSE
+if2_ll,might + literal,0.282,FALSE
+if2_ll,conditional,0.156,FALSE
+if2_ll,literal,0.318,TRUE
+if2_ll,conjunction,0.243,FALSE
+if2_u-Ll,might + literal,0.282,FALSE
+if2_u-Ll,conditional,0.129,FALSE
+if2_u-Ll,literal,0.325,TRUE
+if2_u-Ll,conjunction,0.265,FALSE
+if2_ul,might + literal,0.282,FALSE
+if2_ul,conditional,0.285,TRUE
+if2_ul,literal,0.285,TRUE
+if2_ul,conjunction,0.15,FALSE
+independent_hh,might + literal,0.284,FALSE
+independent_hh,conditional,0.286,TRUE
+independent_hh,literal,0.286,TRUE
+independent_hh,conjunction,0.145,FALSE
+independent_hl,might + literal,0.272,FALSE
+independent_hl,conditional,0.282,TRUE
+independent_hl,literal,0.282,TRUE
+independent_hl,conjunction,0.165,FALSE
+independent_ll,might + literal,0.277,FALSE
+independent_ll,conditional,0,FALSE
+independent_ll,literal,0.355,FALSE
+independent_ll,conjunction,0.368,TRUE
+independent_uh,might + literal,0.285,FALSE
+independent_uh,conditional,0.286,TRUE
+independent_uh,literal,0.286,TRUE
+independent_uh,conjunction,0.144,FALSE
+independent_ul,might + literal,0.258,FALSE
+independent_ul,conditional,0.079,FALSE
+independent_ul,literal,0.331,FALSE
+independent_ul,conjunction,0.332,TRUE
