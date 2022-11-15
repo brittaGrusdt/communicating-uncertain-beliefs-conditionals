@@ -178,7 +178,6 @@ tables_to_bns = function(tables, params){
 #' generates states for abstract prior
 #' @import dplyr
 #' @import tibble
-#' @import matrixStats
 makeAbstractPriorTables = function(path_empiric_tbls_ids) {
   Sys.setenv(R_CONFIG_ACTIVE = "abstract_state_prior")
   tables.par <- config::get()
@@ -223,11 +222,11 @@ makeAbstractPriorTables = function(path_empiric_tbls_ids) {
   tables = group_map(bns %>% group_by(table_id), function(table, table_id){
     table_id=table_id$table_id
     tbls.dep = table %>% filter(!endsWith(bn_id, "independent"))
-    p_dep = (1/8) * exp(logSumExp(tbls.dep$ll))
+    p_dep = (1/8) * exp(matrixStats::logSumExp(tbls.dep$ll))
     p_ind = (1/2) *
       exp(table %>% filter(endsWith(bn_id, "independent")) %>% pull(ll))
     ll = log(p_dep + p_ind)
-    # ll=logSumExp(table$ll)
+    # ll=matrixStats::logSumExp(table$ll)
     df = table %>% add_column(table_id=(!! table_id))
     return(df[1,] %>% mutate(ll=(!!ll)))
   }) %>% bind_rows() %>% group_by(table_id) %>% mutate(cn="", best.cn=TRUE)
