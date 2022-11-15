@@ -1,3 +1,5 @@
+#' @import dplyr
+#' @import tibble
 retrieve_data <- function(raw_data, N_trials){
   # 1. dplyr::select only columns relevant for data analysis
   df <- raw_data %>%
@@ -63,6 +65,8 @@ retrieve_data <- function(raw_data, N_trials){
   return(dat.all)
 }
 
+#' @import dplyr
+#' @import tibble
 process_data <- function(path_to_raw_csv, N_trials){
   raw_data = read_csv(path_to_raw_csv)
   list_data <- retrieve_data(raw_data, N_trials)
@@ -83,8 +87,10 @@ process_data <- function(path_to_raw_csv, N_trials){
   return(list_data)
 }
 
-# according to criteria filter out and save all cleaned data separately
-# @arg df.out_comments: tibble with cols: 'prolific_id', 'id'
+#' according to criteria filter out and save all cleaned data separately
+#' @param df.out_comments tibble with cols: 'prolific_id', 'id'
+#' @import dplyr
+#' @import tibble
 get_ids_to_exclude = function(test_data, train_data, color_trial_data,
                               quality_pe_data, df.out_comments, path_target_csv) {
 
@@ -163,6 +169,8 @@ get_ids_to_exclude = function(test_data, train_data, color_trial_data,
   return(df.out)
 }
 
+#' @import dplyr
+#' @import tibble
 save_data <- function(data, target_path){
   target_dir = paste(head(str_split(target_path, FS)[[1]], -1), collapse="/")
   if(!dir.exists(target_dir)){

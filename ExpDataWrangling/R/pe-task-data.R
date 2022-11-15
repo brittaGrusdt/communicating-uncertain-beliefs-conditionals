@@ -14,6 +14,8 @@
 #   Test Package:              'Cmd + Shift + T'
 
 # Function definitions ----------------------------------------------------
+#' @import dplyr
+#' @import tibble
 retrieve_test_pe_data <- function(df){
   dat.test <- df %>% filter(str_detect(trial_name, "multiple_slider")) %>%
     dplyr::select(trial_name, trial_number,
@@ -38,6 +40,8 @@ retrieve_test_pe_data <- function(df){
   return(dat.test)
 }
 
+#' @import dplyr
+#' @import tibble
 retrieve_train_pe_data <- function(df){
   dat.train <- df %>%
     filter(startsWith(trial_name, "animation") |
@@ -63,7 +67,11 @@ retrieve_train_pe_data <- function(df){
 }
 
 
-# standardize all to group1!
+#' standardizes all sliders as if they all were group1 (blue antecedent-, green
+#' conseuqent-block)
+#'
+#' @import dplyr
+#' @import tibble
 standardize_color_groups_exp1 <- function(df){
   # ind2 is used as single training example for production task (always group1!)
   df <- df %>%
@@ -92,6 +100,8 @@ standardize_color_groups_exp1 <- function(df){
 #' conditionals, literals and might+literal.
 #' @examples
 #' add_probs(df = tibble(bg=0.4, b=0.1, g=0.1, none=0.4))
+#' @import dplyr
+#' @import tibble
 add_probs <- function(df){
   df <- df %>% mutate(p_a = bg+b, p_c = bg+g, p_na = g+none, p_nc = b+none) %>%
     mutate(p_c_given_a = bg / p_a,
@@ -110,8 +120,10 @@ add_probs <- function(df){
   return(df)
 }
 
-# @arg df1 in long-format
-# smooth slider ratings from prior elicitation experiment (exp1)
+#' smoothes slider ratings from prior elicitation experiment (PE-task)
+#' @param df1 in long-format
+#' @import dplyr
+#' @import tibble
 add_smoothed_exp1 <- function(df1){
   df = df1 %>% group_by(prolific_id, id) %>% filter(sum(response) != 0)
   # normalize st. slider responses sum up to 1 but also keep original response
@@ -122,17 +134,31 @@ add_smoothed_exp1 <- function(df1){
   return(df.with_smoothed)
 }
 
-save_prob_tables <- function(df.utt_probs, result_dir, fn_tbls_smooth, fn_tbls_empiric_pids){
-  # Save all tables (with smoothed values)
-  tables_all <- df.utt_probs %>% dplyr::select(id, prob, prolific_id, response) %>%
+#' Saves all tables (with smoothed values)
+#' @import dplyr
+#' @import tibble
+save_prob_tables <- function(df.utt_probs, result_dir, fn_tbls_smooth,
+                             fn_tbls_empiric_pids){
+  tables_all <- df.utt_probs %>%
+    dplyr::select(id, prob, prolific_id, response) %>%
     pivot_wider(names_from = prob, values_from = response)
   path_tables_all <- paste(result_dir, fn_tbls_smooth, sep = FS);
   write.table(tables_all, file = path_tables_all, sep = ",", row.names = F)
   message(paste('written smoothed probability tables to:', path_tables_all))
 
-  # tables from PE-task rounded to two digits: each receives an unique id
-  # (empirical_id); save how many participants chose respective table
-  tables_empiric_pids = tables_all %>%
+  path_tbls_empiric_pids = paste(result_dir, fn_tbls_empiric_pids, sep = FS)
+  generate_and_save_empiric_tbl_ids(tables_all, path_tbls_empiric_pids)
+}
+
+#' tables from PE-task are rounded to two digits: each receives an unique id
+#' (empirical_id); save how many participants chose respective table
+#' @param df.tables tibble with columns 'bg', 'b', 'g', 'none' (numeric),
+#' 'prolific_id' and 'id' (str)
+#' @param path_tbls_empiric_pids fn for result to be saved
+#' @import dplyr
+#' @import tibble
+generate_and_save_empiric_tbl_ids = function(df.tables, path_tbls_empiric_pids){
+  tables_empiric_pids = df.tables %>%
     dplyr::select("bg", "b", "g", "none", "prolific_id", "id") %>%
     unite("p_id", c(prolific_id, id)) %>% group_by(bg, b, g, none) %>%
     summarize(p_id = list(p_id), .groups = "keep") %>% ungroup() %>%
@@ -141,8 +167,10 @@ save_prob_tables <- function(df.utt_probs, result_dir, fn_tbls_smooth, fn_tbls_e
            g.round = as.integer(round(g, 2) * 100),
            none.round = as.integer(round(none, 2) * 100)) %>%
     rowid_to_column("empirical_id")
-  save_data(tables_empiric_pids, paste(result_dir, fn_tbls_empiric_pids, sep = FS))
+  save_data(tables_empiric_pids, path_tbls_empiric_pids)
+  return(tables_empiric_pids)
 }
+
 
 #' converts table values to their closest round value restless divisible by 0.05
 #' and adds 4 new columns (names end wiht '.binned') to input tibble.
@@ -153,6 +181,8 @@ save_prob_tables <- function(df.utt_probs, result_dir, fn_tbls_smooth, fn_tbls_e
 #' @returns Tibble with 4 added columns.
 #' @examples
 #' bin_tables(tibble(a.round = 2, b.round = 8, c.round = 50, d.round = 40))
+#' @import dplyr
+#' @import tibble
 bin_tables = function(tables){
   tbls= tables %>% rowid_to_column() %>% group_by(rowid) %>%
     pivot_longer(cols = ends_with(".round"),
@@ -174,10 +204,12 @@ bin_tables = function(tables){
 }
 
 # Quality of the data -----------------------------------------------------
-# for each participant take mean response of all other participants for each
-# stimulus and question, then compute squared difference between participant's
-# response and mean of all others -> 4 values, one for each question (for each participant)
+#' for each participant take mean response of all other participants for each
+#' stimulus and question, then compute squared difference between participant's
+#' response and mean of all others -> 4 values, one for each question (for each participant)
 # to get one value per participant sum these up (for each participant)
+#' @import dplyr
+#' @import tibble
 distancesResponses = function(df.prior, save_as = NA){
   df = df.prior %>%
     dplyr::select(prolific_id, id, response, slider) %>%

@@ -38,6 +38,8 @@ standardized.might = c(standardized.sentences$might_b, standardized.sentences$mi
                        standardized.sentences$might_nb, standardized.sentences$might_ng)
 
 # Function Definitions ----------------------------------------------------
+#' @import dplyr
+#' @import tibble
 retrieve_test_uc_data <- function(df){
   dat.test <- df %>%
     filter(startsWith(trial_name, "fridge_view")) %>%
@@ -50,7 +52,9 @@ retrieve_test_uc_data <- function(df){
   return(dat.test)
 }
 
-# standardizes selected responses + custom responses as if all were in group1
+#' standardizes selected responses + custom responses as if all were in group1
+#' @import dplyr
+#' @import tibble
 standardize_color_groups_exp2 <- function(df){
   df <- df %>%
     mutate(uc_task=
@@ -83,6 +87,8 @@ standardize_color_groups_exp2 <- function(df){
 #' @examples
 #' add(1, 1)
 #' add(10, 1)
+#' @import dplyr
+#' @import tibble
 compute_utt_probs = function(observations){
   observations %>%
     mutate(pe_selected_utt = case_when(
@@ -114,10 +120,12 @@ compute_utt_probs = function(observations){
     ))
 }
 
-# utterance contains words in w_pos but not words in w_neg are replaced by utt,
-# for example:
-# w_pos = c("and"), w_neg = c("does not"), utt = "both blocks fall"
-# "the blue block and the green block fall" -> "both blocks fall"
+#' utterance contains words in w_pos but not words in w_neg are replaced by utt,
+#' for example:
+#' w_pos = c("and"), w_neg = c("does not"), utt = "both blocks fall"
+#' "the blue block and the green block fall" -> "both blocks fall"
+#' @import dplyr
+#' @import tibble
 summarize_utts = function(df, w_pos, w_neg, utt){
   for(w in w_pos) {
     df[[paste('word', w, sep='_')]] = with(df, str_detect(utt.standardized, w))
@@ -141,7 +149,10 @@ summarize_utts = function(df, w_pos, w_neg, utt){
   return(dat)
 }
 
-# (the green and the blue = the blue and the green, etc.)
+#' maps all selected utterances to set of standardized utterances
+#' (the green and the blue = the blue and the green, etc.)
+#' @import dplyr
+#' @import tibble
 standardize_sentences = function(df.test){
   df.test = df.test %>% mutate(utt.standardized = as.character(uc_task))
 
@@ -202,8 +213,11 @@ standardize_sentences = function(df.test){
   return(test.standardized)
 }
 
-# translate A/C-responses to real colors
-# @arg speaker.model: long format
+#' translates A/C-responses to real colors
+#' @param speaker.model: long format
+#' @param group str
+#' @import dplyr
+#' @import tibble
 translate_utterances = function(speaker.model, group = "bg"){
   mapping = tribble(~group, ~A, ~`-A`, ~C, ~`-C`,
                     "gb", "green falls", "green does not fall",
@@ -250,7 +264,9 @@ translate_utterances = function(speaker.model, group = "bg"){
   return(df)
 }
 
-#@arg df: with column 'prob'
+#' @param  df with column 'prob' (str)
+#' @import dplyr
+#' @import tibble
 translate_probs_to_utts = function(df){
   dat = df %>% mutate(utt.standardized =
                         case_when(prob=="b" ~ standardized.sentences$b,
@@ -278,8 +294,10 @@ translate_probs_to_utts = function(df){
   return(dat)
 }
 
-# computes counts of utterances per stimulus and corresponding ratio
-# input is joint data since we want 0-entries if an utterance is never selected
+#' computes counts of utterances per stimulus and corresponding ratio
+#' input is joint data since we want 0-entries if an utterance is never selected
+#' @import dplyr
+#' @import tibble
 task2_avg_per_stimulus = function(behavioral){
   behav.n_per_stim = behavioral %>% dplyr::select(prolific_id, id) %>%
     distinct() %>% group_by(id) %>% summarize(N = n(), .groups="drop_last")
@@ -294,6 +312,8 @@ task2_avg_per_stimulus = function(behavioral){
   return(behav.avg)
 }
 
+#' @import dplyr
+#' @import tibble
 save_utt_frequencies = function(uc_pe_data, result_dir, fn, fn_chunked){
   human.exp2.avg = task2_avg_per_stimulus(uc_pe_data)
   path_utt_freq = paste(result_dir, fn, sep = FS)
@@ -320,6 +340,8 @@ save_utt_frequencies = function(uc_pe_data, result_dir, fn, fn_chunked){
 #' @returns Tibble with transformed values in column 'utterance'.
 #' @examples
 #' chunk_utterances(data=tibble(utterance = c("blue and green fall", "C > A")))
+#' @import dplyr
+#' @import tibble
 chunk_utterances <- function(data, utts_kept=c()){
   levels = c("might + literal", "conditional", "literal", "conjunction");
   s = paste(utts_kept, collapse="");

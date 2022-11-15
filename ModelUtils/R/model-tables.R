@@ -178,6 +178,7 @@ tables_to_bns = function(tables, params){
 #' generates states for abstract prior
 #' @import dplyr
 #' @import tibble
+#' @import matrixStats
 makeAbstractPriorTables = function(path_empiric_tbls_ids) {
   Sys.setenv(R_CONFIG_ACTIVE = "abstract_state_prior")
   tables.par <- config::get()

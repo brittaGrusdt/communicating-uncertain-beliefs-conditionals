@@ -1,8 +1,6 @@
-library(tidyverse)
-library(here)
-library(matrixStats)
-
 # Function Definitions ----------------------------------------------------
+#' @import dplyr
+#' @import tibble
 get_controlled_factors = function(df){
   data = df %>% mutate(stimulus = id) %>%
     separate(stimulus, into=c("relation", "prior"), sep="_") %>%
@@ -25,7 +23,8 @@ get_controlled_factors = function(df){
   return(data)
 }
 
-
+#' @import dplyr
+#' @import tibble
 add_utt_probs_to_pe_task_data = function(test.prior, smoothed=TRUE){
   df.pe_responses = test.prior %>% dplyr::select(-QUD, -trial_name)
   if(smoothed){
@@ -44,6 +43,8 @@ add_utt_probs_to_pe_task_data = function(test.prior, smoothed=TRUE){
   return(df.probabilities)
 }
 
+#' @import dplyr
+#' @import tibble
 join_pe_uc_data = function(pe_data, uc_data){
   df.uc_data = uc_data %>%
     dplyr::select(prolific_id, id, uc_task, custom_response,

@@ -1,3 +1,5 @@
+#' @import dplyr
+#' @import tibble
 clean_train_data = function(train_data, df.out) {
   anti_by = c("prolific_id")
   # only filter out data from participants from whom all data is excluded

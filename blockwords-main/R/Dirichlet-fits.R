@@ -43,7 +43,7 @@ sample_dirichlet <- function(params, seed, n=1000){
   return(tables)
 }
 
-makeDirichletTables = function(df.params.fit, path_empiric_tbl_ids) {
+makeDirichletTables = function(df.params.fit, path_empiric_tbls_ids) {
   Sys.setenv(R_CONFIG_ACTIVE = "situation_specific_prior")
   par <- config::get()
   tables.dirichlet = sample_dirichlet(df.params.fit, par$seed_fitted_tables)
@@ -56,12 +56,11 @@ makeDirichletTables = function(df.params.fit, path_empiric_tbl_ids) {
     group_by(`AC`, `A-C`, `-AC`, `-A-C`)
   tables.generated$table_id = tables.generated %>% group_indices() 
   
-  path_empiric_tbls_ids = par$fn_tbls_empiric_pids
   tables.model = match_sampled_and_empiric_tables(tables.generated, 
-                                                  path_empiric_tbl_ids)
+                                                  path_empiric_tbls_ids)
   path_table_mappings = here(par$dir_model_input, par$fn_tables_mapping)
   tables.with_empirical = add_empirical_tables(tables.model,
-                                               path_empiric_tbl_ids,
+                                               path_empiric_tbls_ids,
                                                path_table_mappings)
 
   # for each table add ll for each context
@@ -114,7 +113,7 @@ makeDirichletTables = function(df.params.fit, path_empiric_tbl_ids) {
   
   save_data(tables, here(par$dir_model_input, par$fn_uniq_tables))
   
-  return(bns)
+  return(tables)
 }
 
 combine_tables_and_contexts = function(tbls.ll){
