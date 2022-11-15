@@ -1,7 +1,9 @@
 default:
-  #dir_empiric: !expr paste("data", "formatted-cleaned", sep=.Platform$file.sep)
   path_cleaned_data: !expr paste("data", "cleaned-data.csv", sep=.Platform$file.sep)
   dir_model_input: !expr paste("model", "data", sep = .Platform$file.sep)
+  dir_webppl_model: !expr paste("model", "webppl-model", "default-model", sep = .Platform$file.sep)
+  fn_rsa_model: "default-model.wppl"
+  fn_gen_utts: "utterances.wppl"
   fn_predictions_by_context: "predictions-by-context.csv"
   fn_predictions_by_context_chunked: "predictions-by-context-chunked.csv"
   fn_joint_results: "exact-model-behavioral-predictions.csv"
@@ -16,9 +18,6 @@ default:
   theta: 0.7
   verbose: true
   cns: !expr c("A implies C", "C implies A", "A implies -C", "C implies -A", "A || C")
-  # packages:  !expr c(here("model", "webppl-model", "node_modules", "conditionalsHelpers"),
-  #                    here("model", "webppl-model", "node_modules", "conditionalsDefault"))
-  # model_path: !expr here("model", "webppl-model", "default-model", "default-model.wppl")
   packages:  !expr c(paste("model", "webppl-model", "node_modules", 
                            "conditionalsHelpers", sep = .Platform$file.sep),
                      paste("model", "webppl-model", "node_modules", 
@@ -28,7 +27,6 @@ default:
   #seed_webppl: !expr as.numeric(Sys.time())
   seed_webppl: 123467
   vars: !expr c("A", "C")
-  # bias: "none"
   level_max: "speaker"
   # @arg utt: - if set to "p_delta" or "p_rooij", respective value must be
   #           large (see in webppl file) for all states given to the speaker,

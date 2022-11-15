@@ -1,34 +1,6 @@
 library(truncnorm)
 
-
 # Function definitions ----------------------------------------------------
-compute_cond_prob <- function(distr_wide, prob){
-  if(prob == "P(C|A)"){
-    distr <- distr_wide %>% mutate(p =`AC`/(`AC`+`A-C`))
-  }else if(prob == "P(-C|-A)"){
-    distr <- distr_wide %>% mutate(p =`-A-C`/(`-AC`+`-A-C`))
-  }else if(prob == "P(A|C)"){
-    distr <- distr_wide %>% mutate(p =`AC`/(`-AC`+`AC`))
-  }else if(prob == "P(A|-C)"){
-    distr <- distr_wide %>% mutate(p =`A-C`/(`A-C`+`-A-C`))
-  }else if(prob == "P(-A|-C)"){
-    distr <- distr_wide %>% mutate(p =`-A-C`/(`A-C`+`-A-C`))
-  } else if(prob == "P(C|-A)"){
-    distr <- distr_wide %>% mutate(p =`-AC`/(`-AC`+`-A-C`))
-  } else if(prob == "P(-C|-A)"){
-    distr <- distr_wide %>% mutate(p =`-A-C`/(`-AC`+`-A-C`))
-  }else if(prob == "P(-C|A)"){
-    distr <- distr_wide %>% mutate(p =`A-C`/(`AC`+`A-C`))
-  }else if(prob == "P(-A|C)"){
-    distr <- distr_wide %>% mutate(p =`-AC`/(`AC`+`-AC`))
-  }
-  else{
-    stop("not implemented.")
-  }
-  return(distr)
-}
-
-
 # adds empirical tables to set of all generated tables (tables.gen)
 add_empirical_tables = function(tables.gen, path_empiric_tbl_ids, path_mapping=NA){
   max.table_id = tables.gen$table_id %>% max()
@@ -41,19 +13,19 @@ add_empirical_tables = function(tables.gen, path_empiric_tbl_ids, path_mapping=N
     unnest_longer(c(p_id)) %>%
     separate("p_id", into=c("prolific_id", "rel", "prior"), sep="_") %>%
     unite("id", "rel", "prior")
-  
+
   tables.map = tbls.emp %>% ungroup() %>%
     dplyr::select(prolific_id, id, table_id, empirical_id,
                   AC, `A-C`, `-AC`, `-A-C`) %>%
     rename(stimulus=id)
   if(!is.na(path_mapping)) save_data(tables.map, path_mapping)
-  
+
   tables.empiric = tbls.emp %>% mutate(stimulus=id) %>%
     unite("p_id", "prolific_id", "id", sep="_") %>%
-    mutate(empirical_id = list(empirical_id), p_id = list(p_id), 
+    mutate(empirical_id = list(empirical_id), p_id = list(p_id),
            stimulus = list(stimulus)) %>%
     distinct()
-  
+
   tbls.joint = bind_rows(tables.gen %>% add_column(added=FALSE), tables.empiric)
   return(tbls.joint)
 }
@@ -62,28 +34,28 @@ add_empirical_tables = function(tables.gen, path_empiric_tbl_ids, path_mapping=N
 likelihood_tables <- function(df_wide, sigma_indep, a=10, b=1){
   # prepare
   df <- df_wide %>%
-    compute_cond_prob("P(C|A)") %>% rename(p_c_given_a=p) %>% 
-    compute_cond_prob("P(C|-A)") %>% rename(p_c_given_na=p) %>% 
-    compute_cond_prob("P(A|C)") %>% rename(p_a_given_c=p) %>% 
+    compute_cond_prob("P(C|A)") %>% rename(p_c_given_a=p) %>%
+    compute_cond_prob("P(C|-A)") %>% rename(p_c_given_na=p) %>%
+    compute_cond_prob("P(A|C)") %>% rename(p_a_given_c=p) %>%
     compute_cond_prob("P(A|-C)") %>% rename(p_a_given_nc=p) %>%
     mutate(pa=AC+`A-C`, pc=AC+`-AC`,
            ind.lower=case_when(1-(pa+pc) < 0 ~ abs(1-(pa+pc)),
                                TRUE ~ 0),
            ind.upper=pmin(pa, pc))
-  
-  df <- df %>% 
+
+  df <- df %>%
     mutate(
       p_nc_given_a = 1 - p_c_given_a,
       p_na_given_c = 1 - p_a_given_c,
       p_nc_given_na = 1 - p_c_given_na,
       p_na_given_nc = 1 - p_a_given_nc,
-      
+
       logL_ind=log(dtruncnorm(x=`AC`, a=ind.lower, b=ind.upper, mean=pa*pc, sd=sigma_indep)),
       logL_if_ac = log(dbeta(p_c_given_a, a, b))+log(dbeta(p_c_given_na, b, a)),
       logL_if_anc = log(dbeta(p_nc_given_a, a, b)) + log(dbeta(p_nc_given_na, b, a)),
       logL_if_ca = log(dbeta(p_a_given_c, a, b)) + log(dbeta(p_a_given_nc, b, a)),
       logL_if_cna = log(dbeta(p_na_given_c, a, b)) + log(dbeta(p_na_given_nc, b, a))
-    ) %>% 
+    ) %>%
     dplyr::select(-p_c_given_na, -p_c_given_a, -p_a_given_c, -p_a_given_nc, -pa, -pc,
                   -p_nc_given_a, -p_na_given_c, -p_nc_given_na, -p_na_given_nc)
   return(df)
@@ -103,7 +75,7 @@ create_dependent_tables <- function(params, cns){
     p_child_parent <- theta + beta * (1 - theta)
     p_child_neg_parent <- beta
     p_parent <- runif(n)
-    
+
     if(cn %in% c("A implies C", "C implies A")){
       probs <- tibble(cond1=p_child_parent, cond2=p_child_neg_parent, marginal=p_parent)
     } else if(cn %in% c("A implies -C", "C implies -A")){
@@ -132,7 +104,7 @@ create_dependent_tables <- function(params, cns){
     tables_wide <- tables_long %>% group_by(id) %>%
       summarise(ps = list(val), .groups = 'drop') %>% add_column(cn=(!! cn)) %>%
       mutate(vs=list(c("AC", "A-C", "-AC", "-A-C"))) %>% dplyr::select(-id)
-    
+
     all_tables[[idx]] <- tables_wide
     idx <- idx + 1
   }
@@ -150,11 +122,11 @@ create_independent_tables <- function(params){
            `-AC`=pc-`AC`, `A-C`=pa-`AC`, s=`AC` + `-AC` + `A-C`, `-A-C`= 1 - s) %>%
     dplyr::select(-upper_bound, -lower_bound, -pa, -pc, -s)
   tables.mat = tables  %>% dplyr::select(-id) %>% as.matrix()
-  
+
   tables = prop.table(tables.mat, 1) %>% as_tibble() %>%
     mutate(n=AC + `A-C` + `-AC` + `-A-C`) %>%
     add_column(id=tables$id)
-  
+
   tables_long <- tables %>%
     gather(`AC`, `A-C`, `-AC`, `-A-C`, key="cell", val="val") %>%
     filter(val != 0)
@@ -194,7 +166,7 @@ tables_to_bns = function(tables, params){
 makeAbstractPriorTables = function(path_empiric_tbls_ids) {
   Sys.setenv(R_CONFIG_ACTIVE = "abstract_state_prior")
   tables.par <- config::get()
-  tables.generated <- create_tables(tables.par) %>% 
+  tables.generated <- create_tables(tables.par) %>%
     unnest(c(vs, ps)) %>%
     pivot_wider(names_from="vs", values_from="ps") %>%
     mutate(AC.round=as.integer(round(AC, 2) * 100),
@@ -207,10 +179,10 @@ makeAbstractPriorTables = function(path_empiric_tbls_ids) {
                                                   path_empiric_tbls_ids)
   # add all distinct exact empirical tables to generated set of tables
   path_mapping = here(tables.par$dir_model_input, tables.par$fn_tables_mapping)
-  tables.with_empirical = add_empirical_tables(tables.model, 
-                                               path_empiric_tbls_ids, 
+  tables.with_empirical = add_empirical_tables(tables.model,
+                                               path_empiric_tbls_ids,
                                                path_mapping)
-  
+
   # combine each generated/empirical table with each causal net
   # filter out those with -Infinity log likelihood
   tables <- tables.with_empirical %>% likelihood_tables(tables.par$indep_sigma) %>%
@@ -224,13 +196,13 @@ makeAbstractPriorTables = function(path_empiric_tbls_ids) {
            ps=list(c(`AC`, `A-C`, `-AC`, `-A-C`))) %>%
     dplyr::select(-`AC`, -`A-C`, -`-AC`, -`-A-C`) %>%
     add_column(indep_sigma=tables.par$indep_sigma)
-  
+
   bns.finite_ll = bns  %>% filter(!is.infinite(ll))
-  
+
   save_data(bns.finite_ll %>% filter(!added), here(tables.par$dir_model_input, tables.par$fn_tables))
   save_data(tables.par, here(tables.par$dir_model_input, tables.par$fn_params_tables))
   save_data(bns.finite_ll, here(tables.par$dir_model_input, tables.par$fn_tables_with_empiric))
-  
+
   # unique tables marginal P(tables) computed across cns with logsumexp
   tables = group_map(bns %>% group_by(table_id), function(table, table_id){
     table_id=table_id$table_id
@@ -251,7 +223,7 @@ makeAbstractPriorTables = function(path_empiric_tbls_ids) {
 # and brings result into format for webppl model
 # @arg tables.generated: tables uniquely grouped by table_id
 # (before combining with causal nets)
-match_sampled_and_empiric_tables = function(tables.generated, 
+match_sampled_and_empiric_tables = function(tables.generated,
                                             path_empiric_tbl_ids) {
   tables.empiric.pids = readRDS(path_empiric_tbl_ids) %>%
     rename(AC = bg, `A-C` = b, `-AC` = g, `-A-C` = none,
@@ -264,19 +236,19 @@ match_sampled_and_empiric_tables = function(tables.generated,
     unite("stimulus", "rel", "prior", sep="_") %>%
     dplyr::select(ends_with(".binned"), empirical_id, stimulus, p_id) %>%
     group_by(`AC.binned`, `A-C.binned`, `-AC.binned`, `-A-C.binned`)
-  
+
   tables.emp$bin_id = tables.emp %>% group_indices()
   tables.emp.binned = tables.emp %>%
     mutate(empirical_id = list(empirical_id), stimulus = list(stimulus),
            p_id = list(p_id)) %>% distinct()
   tables.gen.binned = tables.generated %>% bin_tables()
-  
+
   tbls.joint = left_join(
     tables.gen.binned, tables.emp.binned,
     by=c("AC.binned", "A-C.binned", "-AC.binned", "-A-C.binned")
   ) %>% group_by(table_id) %>%
     mutate(match.empirical = !is.null(empirical_id[[1]])) %>%
     dplyr::select(-ends_with(".round"), -ends_with("binned"), -bin_id)
-  
+
   return(tbls.joint)
 }

@@ -1,15 +1,19 @@
+library(here)
+library(ExpDataWrangling)
+
+# Run Model ---------------------------------------------------------------
 webppl_distrs_to_tibbles <- function(posterior){
   posterior_tibbles <- map2(posterior, names(posterior), function(x, y){
-    x <- x %>% rowid_to_column() 
+    x <- x %>% rowid_to_column()
     bn_probs <- x %>% dplyr::select("probs", "rowid")
-    data_tibble <- x$support %>% rowid_to_column() %>% 
+    data_tibble <- x$support %>% rowid_to_column() %>%
       unnest(cols = c(table.probs, table.support)) %>%
-      as_tibble() %>% 
-      left_join(bn_probs, by = "rowid") %>% 
+      as_tibble() %>%
+      left_join(bn_probs, by = "rowid") %>%
       mutate("bn_id" = as.character(rowid)) %>%
-      add_column(level=y) %>% 
+      add_column(level=y) %>%
       rename(prob=probs, val=table.probs, cell=table.support)
-    return(data_tibble)             
+    return(data_tibble)
   })
   df <- bind_rows(posterior_tibbles)
   return(df)
@@ -20,8 +24,8 @@ run_webppl <- function(path_wppl_file, params){
     print(paste('model file read from:', path_wppl_file))
     print(paste('packages loaded from:', params$packages))
   }
-  print(paste("theta:", params$theta, 
-              "alpha:", params$alpha, 
+  print(paste("theta:", params$theta,
+              "alpha:", params$alpha,
               "cost_c:", params$cost_conditional))
   data <-   webppl(program_file = path_wppl_file,
                    data = params,
@@ -37,24 +41,24 @@ run_webppl <- function(path_wppl_file, params){
 
 # summarise webppl distributions ------------------------------------------
 webppl_speaker_distrs_to_tibbles <- function(posterior){
-  speaker <- posterior[names(posterior) != "bns"] 
+  speaker <- posterior[names(posterior) != "bns"]
   posterior_tibbles <- map2(speaker, names(speaker), function(x, y){
-    data_tibble <- x %>% rowid_to_column() %>% unnest(cols = c(probs, support)) %>% 
+    data_tibble <- x %>% rowid_to_column() %>% unnest(cols = c(probs, support)) %>%
       rename(utterance=support)
-    return(data_tibble)             
+    return(data_tibble)
   })
   speaker <- bind_rows(posterior_tibbles) %>% mutate(utterance=paste("utt_", utterance, sep=""))
   bns_unique <- posterior$bns %>% rowid_to_column() %>%
-    unnest(cols = c(table.probs, table.support)) %>% 
+    unnest(cols = c(table.probs, table.support)) %>%
     rename(cell=table.support, val=table.probs) %>%
     spread(key=cell, val=val) %>%
     nest(data = c(cn, `-A-C`, `-AC`, `A-C`, `AC`))
-  
+
   # add cn, AC, A-C, -AC, -A-C cell entries to speaker data
   bns <- bns_unique[speaker$rowid,]$data
   speaker_wide <- speaker %>% add_column(bn=bns) %>% unnest(cols = c(bn)) %>%
     spread(key=utterance, val=probs, fill=0)
-  
+
   return(speaker_wide)
 }
 
@@ -75,10 +79,20 @@ structure_speaker_data <- function(posterior, params, save=NA){
     pivot_longer(cols=c(starts_with("utt_")),
                  names_to = "utterance", values_to = "probs", names_prefix="utt_") %>%
     ungroup()
-  
+
   if(save){
     df %>% save_data(here(params$dir_results, params$fn_results))
     params %>% save_data(here(params$dir_results, params$fn_params))
   }
   return(df)
 }
+
+# Utterances --------------------------------------------------------------
+generate_utts <- function(params, path_to_target){
+  path_wppl_model = paste(params$dir_webppl_model, params$fn_gen_utts, sep = FS)
+  utterances <- run_webppl(path_wppl_model, params)
+  utts <- utterances %>% map(function(x){x %>% pull(value)}) %>% unlist()
+  save_data(utts, path_to_target)
+  return(utts)
+}
+

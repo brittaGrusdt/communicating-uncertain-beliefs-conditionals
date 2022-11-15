@@ -1,10 +1,11 @@
 library(devtools)
 devtools::install('../ExpDataWrangling')
+devtools::install('../ModelUtils')
 
 library(here)
 library(ExpDataWrangling)
+library(ModelUtils)
 source(here("R", "Dirichlet-fits.R"))
-source(here("R", "model-tables.R"))
 
 # 1. Setup ----------------------------------------------------------------
 Sys.setenv(R_CONFIG_ACTIVE = "process_data")

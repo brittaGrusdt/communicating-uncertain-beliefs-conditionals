@@ -2,8 +2,7 @@ library(here)
 library(rwebppl)
 library(tidyverse)
 library(ExpDataWrangling)
-source(here("model", "R", "helpers-webppl.R"))
-source(here("model", "R", "helpers-model.R"))
+library(ModelUtils)
 
 # select priors to be used HERE -------------------------------------------
 active_config = "situation_specific_prior"
@@ -30,8 +29,6 @@ bn_ids.mapping = tables %>% filter(added) %>%
   dplyr::select(table_id, bn_id, p_id, ll, stimulus, cn, best.cn)
 
 params$bn_ids = bn_ids.mapping %>% distinct_at(vars(c(bn_id))) %>% pull(bn_id)
-tbls.long = params$tables %>% unnest(c(vs,ps))
-tbls.wide = tbls.long %>% pivot_wider(names_from = "vs", values_from="ps")
 
 ## Generate/Retrieve utterances
 path_utterances = here(params$dir_model_input, params$fn_utterances)
