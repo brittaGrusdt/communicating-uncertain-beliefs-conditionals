@@ -1,7 +1,7 @@
-library(truncnorm)
-
 # Function definitions ----------------------------------------------------
 # adds empirical tables to set of all generated tables (tables.gen)
+#' @import dplyr
+#' @import tibble
 add_empirical_tables = function(tables.gen, path_empiric_tbl_ids, path_mapping=NA){
   max.table_id = tables.gen$table_id %>% max()
   tbls.emp = readRDS(path_empiric_tbl_ids) %>%
@@ -31,6 +31,8 @@ add_empirical_tables = function(tables.gen, path_empiric_tbl_ids, path_mapping=N
 }
 
 # ** computes log likelihood for independent net and  A->C / C->A for dep nets**
+#' @import dplyr
+#' @import tibble
 likelihood_tables <- function(df_wide, sigma_indep, a=10, b=1){
   # prepare
   df <- df_wide %>%
@@ -42,7 +44,6 @@ likelihood_tables <- function(df_wide, sigma_indep, a=10, b=1){
            ind.lower=case_when(1-(pa+pc) < 0 ~ abs(1-(pa+pc)),
                                TRUE ~ 0),
            ind.upper=pmin(pa, pc))
-
   df <- df %>%
     mutate(
       p_nc_given_a = 1 - p_c_given_a,
@@ -50,7 +51,8 @@ likelihood_tables <- function(df_wide, sigma_indep, a=10, b=1){
       p_nc_given_na = 1 - p_c_given_na,
       p_na_given_nc = 1 - p_a_given_nc,
 
-      logL_ind=log(dtruncnorm(x=`AC`, a=ind.lower, b=ind.upper, mean=pa*pc, sd=sigma_indep)),
+      logL_ind=log(truncnorm::dtruncnorm(x=`AC`, a=ind.lower, b=ind.upper,
+                                         mean=pa*pc, sd=sigma_indep)),
       logL_if_ac = log(dbeta(p_c_given_a, a, b))+log(dbeta(p_c_given_na, b, a)),
       logL_if_anc = log(dbeta(p_nc_given_a, a, b)) + log(dbeta(p_nc_given_na, b, a)),
       logL_if_ca = log(dbeta(p_a_given_c, a, b)) + log(dbeta(p_a_given_nc, b, a)),
@@ -61,7 +63,8 @@ likelihood_tables <- function(df_wide, sigma_indep, a=10, b=1){
   return(df)
 }
 
-
+#' @import dplyr
+#' @import tibble
 create_dependent_tables <- function(params, cns){
   all_tables <- list()
   idx <- 1
@@ -112,13 +115,16 @@ create_dependent_tables <- function(params, cns){
   return(tables)
 }
 
+#' @import dplyr
+#' @import tibble
+#' @importFrom truncnorm rtruncnorm
 create_independent_tables <- function(params){
   tables <- tibble(pc=runif(params$n_ind_tables), pa=runif(params$n_ind_tables)) %>%
     rowid_to_column("id") %>%
     mutate(upper_bound = pmin(pa, pc),
            lower_bound = ifelse(1-(pa+pc) < 0, abs(1-(pa+pc)), 0),
            #noisy samples
-           `AC`= rtruncnorm(1, a=lower_bound, b=upper_bound, mean=pa*pc, sd=params$indep_sigma),
+           `AC`= truncnorm::rtruncnorm(1, a=lower_bound, b=upper_bound, mean=pa*pc, sd=params$indep_sigma),
            `-AC`=pc-`AC`, `A-C`=pa-`AC`, s=`AC` + `-AC` + `A-C`, `-A-C`= 1 - s) %>%
     dplyr::select(-upper_bound, -lower_bound, -pa, -pc, -s)
   tables.mat = tables  %>% dplyr::select(-id) %>% as.matrix()
@@ -136,6 +142,8 @@ create_independent_tables <- function(params){
   return(tables_wide)
 }
 
+#' @import dplyr
+#' @import tibble
 create_tables <- function(params, use_seed = TRUE){
   if(use_seed) set.seed(params$seed_tables)
   cns_dep = params$cns[params$cns != "A || C"]
@@ -147,7 +155,11 @@ create_tables <- function(params, use_seed = TRUE){
   return(tables)
 }
 
-# @arg tables: one column per loglikelihood
+#' adds log likelihood for each table and each of five causal nets
+#' @param tables tibble with one column per loglikelihood
+#' @param params list
+#' @import dplyr
+#' @import tibble
 tables_to_bns = function(tables, params){
   tables.ll = tables %>% group_by(table_id) %>%
     pivot_longer(cols=starts_with("logL_"), names_to="ll_cn", values_to="ll")
@@ -163,6 +175,9 @@ tables_to_bns = function(tables, params){
   return(tbls)
 }
 
+#' generates states for abstract prior
+#' @import dplyr
+#' @import tibble
 makeAbstractPriorTables = function(path_empiric_tbls_ids) {
   Sys.setenv(R_CONFIG_ACTIVE = "abstract_state_prior")
   tables.par <- config::get()
@@ -199,9 +214,9 @@ makeAbstractPriorTables = function(path_empiric_tbls_ids) {
 
   bns.finite_ll = bns  %>% filter(!is.infinite(ll))
 
-  save_data(bns.finite_ll %>% filter(!added), here(tables.par$dir_model_input, tables.par$fn_tables))
+  # save_data(bns.finite_ll %>% filter(!added), here(tables.par$dir_model_input, tables.par$fn_tables))
   save_data(tables.par, here(tables.par$dir_model_input, tables.par$fn_params_tables))
-  save_data(bns.finite_ll, here(tables.par$dir_model_input, tables.par$fn_tables_with_empiric))
+  # save_data(bns.finite_ll, here(tables.par$dir_model_input, tables.par$fn_tables_with_empiric))
 
   # unique tables marginal P(tables) computed across cns with logsumexp
   tables = group_map(bns %>% group_by(table_id), function(table, table_id){
@@ -216,20 +231,23 @@ makeAbstractPriorTables = function(path_empiric_tbls_ids) {
     return(df[1,] %>% mutate(ll=(!!ll)))
   }) %>% bind_rows() %>% group_by(table_id) %>% mutate(cn="", best.cn=TRUE)
   save_data(tables, here(tables.par$dir_model_input, tables.par$fn_uniq_tables))
-  return(bns)
+  return(tables)
 }
 
-# matches empirical_ids with table_ids from sampled tables and saves mapping
-# and brings result into format for webppl model
-# @arg tables.generated: tables uniquely grouped by table_id
-# (before combining with causal nets)
+#' matches empirical_ids with table_ids from sampled tables and saves mapping
+#' and brings result into format for webppl model
+#' @param tables.generated tables uniquely grouped by table_id
+#' (before combining with causal nets)
+#' @import dplyr
+#' @import tibble
+#' @import ExpDataWrangling
 match_sampled_and_empiric_tables = function(tables.generated,
                                             path_empiric_tbl_ids) {
   tables.empiric.pids = readRDS(path_empiric_tbl_ids) %>%
     rename(AC = bg, `A-C` = b, `-AC` = g, `-A-C` = none,
            AC.round = `bg.round`, `A-C.round` = `b.round`,
            `-AC.round` = `g.round`, `-A-C.round` = `none.round`) %>%
-    bin_tables()
+    ExpDataWrangling::bin_tables()
   tables.emp = tables.empiric.pids %>% unnest(c(p_id)) %>%
     mutate(p_id.copy=p_id) %>%
     separate(p_id.copy, into=c("pid", "rel", "prior"), sep="_") %>%
@@ -241,7 +259,7 @@ match_sampled_and_empiric_tables = function(tables.generated,
   tables.emp.binned = tables.emp %>%
     mutate(empirical_id = list(empirical_id), stimulus = list(stimulus),
            p_id = list(p_id)) %>% distinct()
-  tables.gen.binned = tables.generated %>% bin_tables()
+  tables.gen.binned = tables.generated %>% ExpDataWrangling::bin_tables()
 
   tbls.joint = left_join(
     tables.gen.binned, tables.emp.binned,

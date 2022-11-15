@@ -41,7 +41,7 @@ if(params$generate_utterances || !file.exists(path_utterances)){
 params$utterances <- utterances
 
 # Run Model ---------------------------------------------------------------
-posterior <- run_webppl(params$model_path, params)
+posterior <- run_webppl(params)
 
 # restructure data and save
 speaker <- posterior %>% structure_speaker_data(params) %>% group_by(bn_id)

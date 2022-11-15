@@ -1,15 +1,11 @@
-library(truncnorm)
-library(dplyr)
-library(matrixStats)
-library(ExpDataWrangling)
-
 # Function Definitions ----------------------------------------------------
 #' Computes a conditional probability for prob table AC, A-C, -AC, -A-C.
 #'
 #' @param distr_wide tibble with columns 'AC', 'A-C', '-AC', '-A-C'
 #' @param prob str P(x|y) where x,y are one of: A, -A, C, -C
 #' @return tibble with column p added containing computed conditional probability
-#'
+#' @import dplyr
+#' @import tibble
 #'
 compute_cond_prob <- function(distr_wide, prob){
   if(prob == "P(C|A)"){
@@ -37,6 +33,9 @@ compute_cond_prob <- function(distr_wide, prob){
   return(distr)
 }
 
+#' @import dplyr
+#' @import tibble
+#' @import readr
 join_model_behavioral_averages = function(path_behav.by_context,
                                           path_model.by_context){
   model.by_context = read_csv(path_model.by_context) %>% rename(model = p)
@@ -54,6 +53,9 @@ join_model_behavioral_averages = function(path_behav.by_context,
   return(data.joint)
 }
 
+#' @import dplyr
+#' @import tibble
+#' @import ExpDataWrangling
 translate_standardized2model = function(df) {
   df <- df %>%
     mutate(utterance =
@@ -82,7 +84,10 @@ translate_standardized2model = function(df) {
   return(df)
 }
 
-# 1:1 mapping model predictions with empirically observed tables
+#' 1:1 mapping model predictions with empirically observed tables
+#' @import dplyr
+#' @import tibble
+#' @import readr
 join_model_behavioral = function(dat.speaker, bn_ids.mapping, tables.mapping,
                                  path_data, path_results = NA){
   predictions <- dat.speaker %>%
@@ -131,6 +136,8 @@ join_model_behavioral = function(dat.speaker, bn_ids.mapping, tables.mapping,
   return(behav_model)
 }
 
+#' @import dplyr
+#' @import tibble
 model_average_per_utterance_type = function(model.avg, path_results=NA){
   df.chunked = model.avg %>%
     mutate(utterance=case_when(
@@ -151,10 +158,13 @@ model_average_per_utterance_type = function(model.avg, path_results=NA){
 }
 
 
-# considers each empirical data point (#trials x #participants - filtered)
-# and computes the average model predictions across stimuli, taking into
-# account data from all participants, but weighted with respect to
-# prior probability of respective table and causal net
+#' considers each empirical data point (#trials x #participants - filtered)
+#' and computes the average model predictions across stimuli, taking into
+#' account data from all participants, but weighted with respect to
+#' prior probability of respective table and causal net
+#' @import dplyr
+#' @import tibble
+#' @import readr
 model_prediction_by_context = function(
     dat.speaker, bn_ids.mapping, path_results=NA, path_results_chunked = NA
     ){
@@ -182,8 +192,11 @@ model_prediction_by_context = function(
 }
 
 # Acceptability/Assertability conditions ----------------------------------
-# p_rooij: (P(e|i) - P(e|¬i)) / (1-P(e|¬i))
-# p_delta: P(e|i) - P(e|¬i)
+#' p_rooij: (P(e|i) - P(e|¬i)) / (1-P(e|¬i))
+#' p_delta: P(e|i) - P(e|¬i)
+#'
+#' @import dplyr
+#' @import tibble
 acceptability_conditions <- function(data_wide){
   df <- data_wide %>% compute_cond_prob("P(C|A)") %>% rename(p_c_given_a=p) %>%
     compute_cond_prob("P(C|-A)") %>% rename(p_c_given_na=p) %>%

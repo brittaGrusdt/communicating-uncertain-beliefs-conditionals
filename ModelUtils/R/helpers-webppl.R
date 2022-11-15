@@ -1,7 +1,6 @@
-library(here)
-library(ExpDataWrangling)
-
 # Run Model ---------------------------------------------------------------
+#' @import dplyr
+#' @import tibble
 webppl_distrs_to_tibbles <- function(posterior){
   posterior_tibbles <- map2(posterior, names(posterior), function(x, y){
     x <- x %>% rowid_to_column()
@@ -19,7 +18,12 @@ webppl_distrs_to_tibbles <- function(posterior){
   return(df)
 }
 
-run_webppl <- function(path_wppl_file, params){
+#' @import dplyr
+#' @import tibble
+#' @import rwebppl
+run_webppl <- function(params){
+  path_wppl_file = paste(params$dir_webppl_model,
+                         params$fn_rsa_model, sep = FS)
   if(params$verbose){
     print(paste('model file read from:', path_wppl_file))
     print(paste('packages loaded from:', params$packages))
@@ -40,6 +44,8 @@ run_webppl <- function(path_wppl_file, params){
 
 
 # summarise webppl distributions ------------------------------------------
+#' @import dplyr
+#' @import tibble
 webppl_speaker_distrs_to_tibbles <- function(posterior){
   speaker <- posterior[names(posterior) != "bns"]
   posterior_tibbles <- map2(speaker, names(speaker), function(x, y){
@@ -47,7 +53,8 @@ webppl_speaker_distrs_to_tibbles <- function(posterior){
       rename(utterance=support)
     return(data_tibble)
   })
-  speaker <- bind_rows(posterior_tibbles) %>% mutate(utterance=paste("utt_", utterance, sep=""))
+  speaker <- bind_rows(posterior_tibbles) %>%
+    mutate(utterance=paste("utt_", utterance, sep=""))
   bns_unique <- posterior$bns %>% rowid_to_column() %>%
     unnest(cols = c(table.probs, table.support)) %>%
     rename(cell=table.support, val=table.probs) %>%
@@ -62,7 +69,8 @@ webppl_speaker_distrs_to_tibbles <- function(posterior){
   return(speaker_wide)
 }
 
-
+#' @import dplyr
+#' @import tibble
 structure_speaker_data <- function(posterior, params, save=NA){
   if(is.na(save)) save=params$save
   speaker_wide <- webppl_speaker_distrs_to_tibbles(posterior)
@@ -88,9 +96,10 @@ structure_speaker_data <- function(posterior, params, save=NA){
 }
 
 # Utterances --------------------------------------------------------------
+#' @import dplyr
+#' @import tibble
 generate_utts <- function(params, path_to_target){
-  path_wppl_model = paste(params$dir_webppl_model, params$fn_gen_utts, sep = FS)
-  utterances <- run_webppl(path_wppl_model, params)
+  utterances <- run_webppl(params)
   utts <- utterances %>% map(function(x){x %>% pull(value)}) %>% unlist()
   save_data(utts, path_to_target)
   return(utts)
