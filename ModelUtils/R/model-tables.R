@@ -270,3 +270,45 @@ match_sampled_and_empiric_tables = function(tables.generated,
 
   return(tbls.joint)
 }
+
+
+
+# Extended-Analysis -------------------------------------------------------
+#' creates names of all causal nets distinguishing between low/high/unc for
+#' causal power, noise and marginal probabilities.
+#'
+#' @param p_noise char vector at least one of: "high", "low", "unc"
+#' @param p_cp char vector at least one of: "high", "low", "unc"
+#' @param p_ant char vector at least one of: "high", "low", "unc"
+#' @param rels_dep char vector with names of dep. causal nets (e.g., A implies C)
+#' @param p_a char vector at least one of: "high", "low", "unc"
+#' @param p_c at least one of: "high", "low", "unc"
+#' @import dplyr
+#' @import tibble
+create_causal_nets = function(p_noise, p_cp, p_ant, rels_dep, p_a, p_c){
+  cns.dep = expand.grid(p_noise, p_cp, p_ant, rels_dep)  %>% as_tibble() %>%
+    rename(noise = Var1, causal_power = Var2, antecedent = Var3, r = Var4) %>%
+    mutate(noise = as.character(noise),
+           causal_power = as.character(causal_power),
+           antecedent = as.character(antecedent),
+           r = as.character(r)) %>%
+    filter(causal_power != noise) %>%
+    unite("probs", antecedent, causal_power, noise, sep = "-") %>%
+    unite("cn", r, probs, sep = "_") %>% pull(cn)
+
+  cns.ind = expand.grid(p_a, p_c) %>% as_tibble() %>%
+      rename(pa = Var1, pc = Var2) %>%
+      unite("probs", pa, pc, sep="-") %>%
+      mutate(cn = paste("A || C", probs, sep = "_")) %>% pull(cn)
+  return(list(dep = cns.dep, ind = cns.ind))
+}
+
+
+
+
+
+
+
+
+
+

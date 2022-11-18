@@ -21,16 +21,13 @@ webppl_distrs_to_tibbles <- function(posterior){
 #' @import dplyr
 #' @import tibble
 #' @import rwebppl
-run_webppl <- function(params){
-  path_wppl_file = paste(params$dir_webppl_model,
-                         params$fn_rsa_model, sep = FS)
+run_webppl <- function(path_wppl_file, params){
   if(params$verbose){
     print(paste('model file read from:', path_wppl_file))
     print(paste('packages loaded from:', params$packages))
   }
   print(paste("theta:", params$theta,
-              "alpha:", params$alpha,
-              "cost_c:", params$cost_conditional))
+              "alpha:", params$alpha))
   data <-   webppl(program_file = path_wppl_file,
                    data = params,
                    data_var = "data",
@@ -99,7 +96,9 @@ structure_speaker_data <- function(posterior, params, save=NA){
 #' @import dplyr
 #' @import tibble
 generate_utts <- function(params, path_to_target){
-  utterances <- run_webppl(params)
+  path_wppl_file = paste(params$dir_webppl_model,
+                         params$fn_gen_utts, sep = FS)
+  utterances <- run_webppl(path_wppl_file, params)
   utts <- utterances %>% map(function(x){x %>% pull(value)}) %>% unlist()
   save_data(utts, path_to_target)
   return(utts)
