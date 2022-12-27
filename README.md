@@ -7,7 +7,7 @@ This repository accompanies our submission "Communicating uncertain beliefs with
 The code for the experiment is stored in "blockwords-main", the code 
 for the generation of the stimuli, as well as the stimuli pictures, are stored in "blockwords-main/stimuli".
 
-The Experiment is implemented with [Magpie](https://magpie-ea.github.io/magpie-site/index.html), open "blockwords/index.html" for running the experiment in a browser.
+The Experiment is implemented with [Magpie](https://magpie-ea.github.io/magpie-site/index.html), open "blockwords-main/experiment/index.html" for running the experiment in a browser.
 
 # Model
 
