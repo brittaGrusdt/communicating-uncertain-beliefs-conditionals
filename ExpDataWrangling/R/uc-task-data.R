@@ -227,40 +227,52 @@ translate_utterances = function(speaker.model, group = "bg"){
   ) %>% filter(group == (!! group))
 
   df <- speaker.model %>%
-    mutate(response=case_when(
+    mutate(response = case_when(
       str_detect(response, "-C") ~ str_replace(response, "-C", mapping$`-C`),
       str_detect(response, "C") ~ str_replace(response, "C", mapping$`C`),
-      TRUE ~ response)) %>%
-    mutate(response=case_when(
+      TRUE ~ response)
+    ) %>%
+    mutate(response = case_when(
       str_detect(response, "-A") ~ str_replace(response, "-A", mapping$`-A`),
       str_detect(response, "A") ~ str_replace(response, "A", mapping$`A`),
-      TRUE ~ response))
+      TRUE ~ response)
+    )
   df = df %>%
-    mutate(response=case_when(str_detect(response, " >") ~
-                                paste("if", str_replace(response, " >", "")),
-                              TRUE ~ response)) %>%
-    mutate(response=case_when(str_detect(response, "likely") ~ str_replace(response, "falls", "might fall"),
-                              TRUE ~ response)) %>%
-    mutate(response=case_when(str_detect(response, "likely") ~ str_replace(response, "does not fall", "might not fall"),
-                              TRUE ~ response)) %>%
-    mutate(response=case_when(str_detect(response, "might") ~ str_replace(response, "likely", ""),
-                              TRUE ~ response)) %>%
-    mutate(response=case_when(response=="green falls and blue falls" ~ standardized.sentences$bg,
-                              response=="blue falls and green falls" ~ standardized.sentences$bg,
-                              response=="green does not fall and blue does not fall" ~
-                                standardized.sentences$none,
-                              response=="blue does not fall and green does not fall" ~
-                                standardized.sentences$none,
-                              TRUE ~ response)) %>%
-    mutate(response=str_replace(response, "and", "but")) %>%
+    mutate(response = case_when(
+      str_detect(response, " >") ~ paste("if", str_replace(response, " >", "")),
+      TRUE ~ response)
+    ) %>%
+    # might X / likely X -> X might (not) fall
+    mutate(response = case_when(
+      (str_detect(response, "likely") | str_detect(response, "might")) ~
+        str_replace(response, "falls", "might fall"),
+      TRUE ~ response)
+    ) %>%
+    mutate(response = case_when(
+      (str_detect(response, "likely") | str_detect(response, "might")) ~
+         str_replace(response, "does not fall", "might not fall"),
+      TRUE ~ response)
+    ) %>%
+    mutate(response = case_when(
+      startsWith(response, "likely") ~ str_replace(response, "likely", ""),
+      startsWith(response, "might") ~ str_replace(response, "might", ""),
+      TRUE ~ response)
+    ) %>%
+    mutate(response = case_when(
+      response == "green falls and blue falls" ~ standardized.sentences$bg,
+      response == "blue falls and green falls" ~ standardized.sentences$bg,
+      response == "green does not fall and blue does not fall" ~ standardized.sentences$none,
+      response == "blue does not fall and green does not fall" ~ standardized.sentences$none,
+      TRUE ~ response)
+    ) %>%
+    mutate(response = str_replace(response, "and", "but")) %>%
     mutate(response=case_when(
-      response=="green does not fall but blue falls" ~
-        "blue falls but green does not fall",
-      response=="blue does not fall but green falls" ~
-        "green falls but blue does not fall",
-      TRUE ~ response)) %>%
-    mutate(response=str_trim(response)) %>%
-    ungroup()
+      response == "green does not fall but blue falls" ~ standardized.sentences$b,
+      response == "blue does not fall but green falls" ~ standardized.sentences$g,
+      TRUE ~ response)
+    ) %>%
+    mutate(response = str_trim(response)) %>% ungroup() %>%
+
   return(df)
 }
 
