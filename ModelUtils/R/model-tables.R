@@ -276,6 +276,8 @@ match_sampled_and_empiric_tables = function(tables.generated,
 # Extended-Analysis -------------------------------------------------------
 #' creates names of all causal nets distinguishing between low/high/unc for
 #' causal power, noise and marginal probabilities.
+#' only includes cases where causal power and noise are not identical!
+#' order within returned string: 1.p_ant 2.causal power 3.noise
 #'
 #' @param p_noise char vector at least one of: "high", "low", "unc"
 #' @param p_cp char vector at least one of: "high", "low", "unc"

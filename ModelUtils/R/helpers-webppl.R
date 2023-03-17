@@ -26,8 +26,8 @@ run_webppl <- function(path_wppl_file, params){
     print(paste('model file read from:', path_wppl_file))
     print(paste('packages loaded from:', params$packages))
   }
-  print(paste("theta:", params$theta,
-              "alpha:", params$alpha))
+  # print(paste("theta:", params$theta,
+  #             "alpha:", params$alpha))
   data <-   webppl(program_file = path_wppl_file,
                    data = params,
                    data_var = "data",
