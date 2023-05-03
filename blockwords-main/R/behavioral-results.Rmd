@@ -18,7 +18,8 @@ library(latex2exp)
 library(scales)
 library(tidyverse)
 library(ExpDataWrangling)
-theme_set(theme_minimal(base_size=12) + theme(legend.position = "top"))
+library(ggthemes)
+theme_set(theme_clean(base_size=20) + theme(legend.position = "top"))
 
 path_cleaned_data = here("data", "cleaned-data.csv")
 
@@ -60,7 +61,8 @@ pe_data.wide = pe_data.long %>%
 
 uc_data = cleaned_data %>% filter(!is.na(uc_task)) %>% 
   dplyr::select(prolific_id, id, relation, uc_task, utt.standardized, 
-                custom_response, cost.uc, RT.uc_task, starts_with("intended")) %>%
+                custom_response, cost.uc, RT.uc_task, starts_with("intended"), 
+                trial_nb_uc) %>%
   group_by(prolific_id, id) %>% 
   mutate(utterance = uc_task, 
          id = str_replace(id, "independent", "ind"), 
@@ -124,43 +126,44 @@ data_bootstrapped = group_map(
   }) %>% bind_rows()  
 
 data_bootstrapped$world <- recode_factor(data_bootstrapped$world, 
-                                         `ac` = "ac", `a-c` = "a¬c", 
-                                        `-ac` = "¬ac", `-a-c` = "¬a¬c")
+                                         `ac` = "bg", `a-c` = "b¬g", 
+                                        `-ac` = "¬bg", `-a-c` = "¬b¬g")
 ```
 
 Plot Mean estimates PE-task data
 
 ```{r}
 pe_task.means =  pe_data.long %>% group_by(id, relation, world) %>% 
-  summarize(pe_task = mean(pe_task), .groups = "drop_last")
+  summarize(pe_task = mean(pe_task), .groups = "drop_last") %>% 
+  mutate(relation = factor(relation, levels = c("if1", "if2", "independent")))
 pe_task.means$world <- recode_factor(pe_task.means$world, 
-                                     `ac` = "ac", `a-c` = "a¬c", 
-                                     `-ac` = "¬ac", `-a-c` = "¬a¬c")
+                                     `ac` = "bg", `a-c` = "b¬g", 
+                                     `-ac` = "¬bg", `-a-c` = "¬b¬g")
 p.means_pe = pe_task.means %>% 
   ggplot(aes(x = id,  color = world, group = world)) +
   geom_point(aes(y = pe_task)) + geom_line(aes(y = pe_task)) +
   scale_x_discrete(labels = 
-                     c(`if1_hh` = parse(text = TeX('$If_1:HI$')),
-                       `if1_lh` = parse(text = TeX('$If_1:LI$')),
-                       `if1_u-Lh` = parse(text = TeX('$If_1:U^-I$')),
-                       `if1_uh` = parse(text = TeX('$If_1:UI$')),
-                       `if2_hl` = parse(text = TeX('$If_2:HL$')),
-                       `if2_ll` = parse(text = TeX('$If_2:LL$')),
-                       `if2_u-Ll` = parse(text = TeX('$If_2:U^-L$')),
-                       `if2_ul` = parse(text = TeX('$If_2:UL$')),
-                       `ind_hh` = 'ind:HH',
-                       `ind_uh` = 'ind:UH',
-                       `ind_hl` = 'ind:HL',
-                       `ind_ul` = 'ind:UL',
-                       `ind_ll` = 'ind:LL'
+                     c(`if1_hh` = parse(text = TeX('$HI$')),
+                       `if1_lh` = parse(text = TeX('$LI$')),
+                       `if1_u-Lh` = parse(text = TeX('$U^-I$')),
+                       `if1_uh` = parse(text = TeX('$UI$')),
+                       `if2_hl` = parse(text = TeX('$HL$')),
+                       `if2_ll` = parse(text = TeX('$LL$')),
+                       `if2_u-Ll` = parse(text = TeX('$U^-L$')),
+                       `if2_ul` = parse(text = TeX('$UL$')),
+                       `ind_hh` = 'HH',
+                       `ind_uh` = 'UH',
+                       `ind_hl` = 'HL',
+                       `ind_ul` = 'UL',
+                       `ind_ll` = 'LL'
                        )
                      ) +
   geom_errorbar(data = data_bootstrapped, aes(ymin = lower, ymax = upper)) +
   facet_wrap(relation ~ world, scales = "free_x", ncol = 4) +
-  labs(y = "Mean estimates across participants", x = "condition (trial)")
+  labs(y = "Mean estimates PE-task", x = "condition (context)")
 p.means_pe
 ggsave(paste(plot_dir, "mean-estimates-pe-task.png", sep = FS), 
-       p.means_pe, width = 14, height = 9)
+       p.means_pe, width = 14, height = 11)
 ```
 
 If1-trials: Estimates for world ¬ac
@@ -280,7 +283,8 @@ print(paste('nb total custom responses given:', nrow(dat.custom), 'out of',
 n_subjs = dat.custom %>% group_by(prolific_id) %>% n_groups()
 N = uc_data %>% group_by(prolific_id) %>% n_groups()
 ratio_subjs = n_subjs / N
-print(paste('nb participants who gave custom response:', round(ratio_subjs, 3)))
+print(paste('Proportion of participants who gave custom response:',
+            round(ratio_subjs, 3)))
 
 # filter out those where custom responses exactly the same as selected response
 dat.custom_different = dat.custom %>% 
@@ -316,7 +320,7 @@ df.and_but = dat.custom %>%
   filter(str_detect(uc_task, "and") &
            str_detect(custom_response, "but") & 
            !str_detect(custom_response, "might")) %>% 
-  dplyr::select(prolific_id, id, uc_task, custom_response)
+  dplyr::select(prolific_id, id, uc_task, custom_response, trial_nb_uc)
 
 subjs = df.and_but$prolific_id %>% unique()
 # check trial number for these cases
@@ -381,10 +385,11 @@ p.utt_freq = df.utt_freq %>% ggplot(aes(y = utt_f, x = n)) +
   geom_bar(aes(fill = utt_type), stat = "identity") +
   scale_fill_brewer(name = "utterance type", palette = "Set2") +
   geom_text(aes(label = n), hjust = -0.2) +
-  labs(y = "utterance", x = "number selections")
+  labs(y = "standardized utterance", x = "number selections") #+
+  # theme(text = element_text(size = 18))
 p.utt_freq
 ggsave(paste(plot_dir, "utterance-frequencies.png", sep = FS), p.utt_freq, 
-       width = 10, height = 6)
+       width = 12, height = 6)
 ```
 
 By participants
@@ -435,7 +440,7 @@ positions_ids = df.if.standardized$id %>% unique()
 p.ifs.standardized = df.if.standardized %>% 
   ggplot(aes(y = n, x = id, fill = utt.standardized)) +
   geom_bar(stat = "identity") +
-  labs(x = "condition (trial)", y = "count") + 
+  labs(x = "condition (context)", y = "count") + 
   scale_x_discrete(limits = positions_ids, 
                    labels = 
                      c(`if1_hh` = parse(text = TeX('$If_1:HI$')),
@@ -453,7 +458,8 @@ p.ifs.standardized = df.if.standardized %>%
                        `ind_ll` = 'ind:LL'
                        )) +
   scale_fill_brewer(name = "", palette = "Set2") +
-  guides(fill = guide_legend(ncol=3))
+  guides(fill = guide_legend(ncol=2)) +
+  theme(text = element_text(size = 18))
 p.ifs.standardized
 ggsave(paste(plot_dir, "conditionals-uc-task.png", sep=FS), p.ifs.standardized,
        width = 9, height = 6)
@@ -544,29 +550,30 @@ df %>% ggplot(aes(x=n, y = utt_f, fill = cost.uc)) +
   guides(fill = guide_legend(nrow = 1))
 
 
-# dependent cases: both fall, neither falls, if blue green, if not blue not green
-df.dep_cost = uc_data %>%
+# utterances: both fall & neither falls
+df.cost_bg_nbng = uc_data %>%
   mutate(cost.uc = factor(cost.uc, levels = seq(2, 7))) %>% 
-  filter(relation != "independent" &
-           utt.standardized %in% 
+  filter(utt.standardized %in% 
             c(standardized.sentences$bg, standardized.sentences$none))
 
-df.dep_cost.sum = df.dep_cost %>% 
-  group_by(utt.standardized, utt_type, cost.uc, uc_task) %>% 
+df.cost_bg_nbng.sum = df.cost_bg_nbng %>% 
+  group_by(utt.standardized, cost.uc, uc_task) %>% 
   summarize(n = n(), .groups = "drop_last") %>% arrange(desc(n))
-df.dep_cost.sum$utt_f = factor(df.dep_cost.sum$utt.standardized, 
-                           levels = c(df.dep_cost.sum$utt.standardized %>% unique()))
+df.cost_bg_nbng.sum$utt_f = factor(df.cost_bg_nbng.sum$utt.standardized, 
+                                   levels = c(df.cost_bg_nbng.sum$utt.standardized %>% unique()))
   
-p.dep_cost = df.dep_cost.sum %>% 
+p.bg_nbng_cost = df.cost_bg_nbng.sum %>% 
   ggplot(aes(x=n, y = utt_f, fill = cost.uc)) + 
   geom_bar(stat = "identity") + 
-  scale_fill_brewer(name = "utterance cost (number of clicks)", palette = 'OrRd') +
-  labs(x = "number selections", y = "selected utterance (standardized)") +
-  guides(fill = guide_legend(nrow = 1))
-p.dep_cost
+  scale_fill_brewer(name = "utterance cost (nb of clicks)", palette = 'OrRd') +
+  labs(x = "number selections", y = "standardized utterance") +
+  guides(fill = guide_legend(nrow = 1)) +
+  theme(text = element_text(size=18))
+p.bg_nbng_cost
 
 
-ggsave(paste(plot_dir, "dep_cost.png", sep = FS), p.dep_cost, width = 6, height = 3)
+ggsave(paste(plot_dir, "bg_nbng_cost.png", sep = FS), p.bg_nbng_cost, 
+       width = 8, height = 3)
 ```
 
 # Joint Data from PE- and UC-task
@@ -730,6 +737,10 @@ df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$no
 df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$b)
 df.means_pe_utts.by_rel %>% filter(utt.standardized == standardized.sentences$g)
 
+# min average value for literals except 'green falls' in if2 selected only once
+df.means_pe_utts.by_rel %>% filter(utt_type == "literal") %>% 
+  filter(!(utt.standardized == "green falls" & relation == "if2")) %>% 
+  pull(mean_pe) %>% min()
 
 p.pe_means_pe_utts = df.means_pe_utts.by_rel %>% 
   ggplot(aes(y = utt.standardized, color = relation)) + 
@@ -745,8 +756,9 @@ p.pe_means_pe_utts = df.means_pe_utts.by_rel %>%
                      labels = c(`if1` = parse(text = TeX('$If_1$')),
                                 `if2` = parse(text = TeX('$If_2$')),
                                 `independent` = 'ind')) +
+  theme(text = element_text(size = 18)) +
   labs(x = "Mean estimate of probability for described event", 
-       y = "selected utterance")
+       y = "selected utterance (standardized)")
 p.pe_means_pe_utts
 
 ggsave(paste(plot_dir, "pe_means_pe_utts.png", sep = FS), p.pe_means_pe_utts,
@@ -797,6 +809,25 @@ p.ant_vs_cons_ifbg
 
 ggsave(paste(plot_dir, "pant_vs_pcons.png", sep = FS), p.ant_vs_cons_ifbg, 
        width = 7, height = 5)
+
+# same plot for selection of conjunctions
+# to_remove <- df.utt_freq_by_rel %>% 
+#   filter(utt.standardized == standardized.sentences$if_bg & n <= 2)
+df = pe_uc_data %>% 
+  mutate(na = `-ac` + `-a-c`, nc = `a-c` + `-a-c`) %>% 
+  dplyr::select(prolific_id, id, relation, a, c, na, nc,
+                uc_task, utt_type, utt.standardized)
+df.conjs = df %>% filter(utt_type == "conjunction") 
+p.a_vs_c_conjs = df.conjs %>%  #anti_join(df.conjs, to_remove) %>%  
+  ggplot(aes(x = a, y = c)) + 
+  geom_density_2d_filled(contour_var = "ndensity") +
+  geom_point(alpha = 0.5) + xlim(0, 1) + ylim(0, 1) +
+  facet_wrap(~relation, labeller = label_wrap_gen(width = 26)) +
+  labs(x = "Estimate P(blue falls)", y = "Estimate P(green falls)")
+p.a_vs_c_conjs
+ggsave(paste(plot_dir, "pa_vs_pc_conjunctions.png", sep = FS), p.a_vs_c_conjs,
+       width=10)
+
 
 # sanity-check: range of estimates for P(blue) and P(green) includes
 # values < 0.5 for dependent trials?

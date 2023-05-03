@@ -1,6 +1,6 @@
 library(brms)
 library(here)
-source(here("R", "utils.R"))
+library(ExpDataWrangling)
 
 path_cleaned_data = here("data", "cleaned-data.csv")
 data = get_controlled_factors(read_csv(path_cleaned_data)) %>% 
