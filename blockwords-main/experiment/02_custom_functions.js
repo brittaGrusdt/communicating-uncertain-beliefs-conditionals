@@ -195,14 +195,19 @@ _computeAdjustedCells = function(button2Toggle, responseIDS, n_moved, sumTo) {
    let prods = _.map(ratios, function(val, idx){
      return(ratios.slice(0, idx+1).reduce(function(i, acc){return(i*acc)}, 1))
    });
+   console.log("prods:" + prods)
    let total = prods.reduce(function(val, acc){return(acc+val)}, 0);
+   console.log("total:" + total)
    // *100 as we output nbs from 0 to 100 not decimals
+   // sumTo by default: 100. First cell is the reference cell!
    let cell1_adj = sumTo /(1+total)
+   console.log("cell1_adj:" + cell1_adj)
    let id1 = order[0].id
    let obj1 = {val: cell1_adj, id: id1, idxSlider: _.last(id1), category: order[0].category}
    let adjusted = [obj1].concat(
      _.map(prods, function(fct, idx){
        let id = order[idx+1]["id"]
+       // new val, computed factor x reference cell!
        let new_val = {val: fct * cell1_adj, id: order[idx+1]["id"],
        idxSlider: _.last(id), category: order[idx+1]["category"]}
        return(new_val)
