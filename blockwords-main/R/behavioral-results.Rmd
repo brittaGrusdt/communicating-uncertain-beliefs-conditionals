@@ -792,8 +792,8 @@ df %>% filter(utt_type == "conditional") %>%  filter(is.na(p_ant) | p_ant == 0)
 # estimates where P(antecedent)=1 but conditional selected
 df %>% filter(utt_type == "conditional") %>% filter(p_ant == 1)
 
-# only consider conditional `if blue falls green falls' for relations where s
-# elected more than twice
+# only consider conditional `if blue falls green falls' for relations where
+# selected more than twice
 to_remove = df.utt_freq_by_rel %>% 
   filter(utt.standardized == standardized.sentences$if_bg & n <= 2)
 
